@@ -1,0 +1,18 @@
+{
+  "id" : "id20",
+  "activityMetaId" : "activityMetaId20",
+  "activityMetaCode" : "activityMetaCode20",
+  "behaviorList" : [ {
+    "id" : "id14",
+    "behaviorMetaId" : "behaviorMetaId14",
+    "behaviorMetaCode" : "behaviorMetaCode14"
+  } ],
+  "corpId" : "corpId20",
+  "unionId" : "unionId20",
+  "groupId" : "groupId20",
+  "userId" : "userId20",
+  "typeCode" : "typeCode20",
+  "activityMap" : {
+    "ASX0002" : "activityName70"
+  }
+}
