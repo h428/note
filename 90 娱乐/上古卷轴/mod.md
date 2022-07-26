@@ -54,8 +54,10 @@
 - [0006 PapyrusUtil SE - Modders Scripting Utility Functions](https://www.nexusmods.com/skyrimspecialedition/mods/13048)：灵魂石多线程前置 mod
 - [0007 JContainers SE](https://www.nexusmods.com/skyrimspecialedition/mods/16495)：通用前置，使用基于 JSON 的可序列化数据结构（如数组和地图）扩展 Skyrim SE Papyrus 脚本
 - [0008 UI Extensions](https://www.nexusmods.com/skyrim/mods/57046)：UI 状态栏扩展，[汉化版](http://www.9damaogame.com/forum.php?mod=viewthread&tid=33878&extra=page%3D1%26filter%3Dtypeid%26typeid%3D71)
-- [0009 Fuz Ro D'oh]()
+- [0009 Fuz Ro D'oh](https://www.nexusmods.com/skyrimspecialedition/mods/15109)
 - [0010 FileAccess Interface for Skyrim SE Scripts - FISSES](https://www.nexusmods.com/skyrimspecialedition/mods/13956)：FISSES
+- [0011 ConsoleUtilSSE](https://www.nexusmods.com/skyrimspecialedition/mods/24858)
+
 
 # 类别 1：动画前置
 
@@ -123,7 +125,7 @@
 - [4014 Floating Damage](https://www.nexusmods.com/skyrimspecialedition/mods/14332)：伤害显示
 - [4015 Quick Loot RE](https://www.nexusmods.com/skyrimspecialedition/mods/21085)：快速拾取
 - [4016 More Informative Console](https://www.nexusmods.com/skyrimspecialedition/mods/19250)：选择对象后，展示详细的控制台信息，可按 tab 修改模式
-- [4017 Amazing Follower Tweaks SE]()：随从管理
+- [4017 Nether's Follower Framework](https://www.nexusmods.com/skyrimspecialedition/mods/55653)：多随从管理
 
 
 # 类别 5：机制修改
@@ -136,7 +138,7 @@
 # 类别 6：环境材质
 
 - [6001 Skyrim 3D Trees and Plants](https://www.nexusmods.com/skyrimspecialedition/mods/12371)：3D 树木和植物，该 mod 有 [汤镬名词汉化](https://www.nexusmods.com/skyrimspecialedition/mods/40019)，下载后直接替换原 mod 同名文件即可
-- [6002 Static Mesh Improvement Mod - SMIM](https://www.nexusmods.com/skyrimspecialedition/mods/659)：更好的静态纹理，[汉化版](http://www.9damaogame.com/forum.php?mod=viewthread&tid=153905&highlight=Static%2BMesh)
+- [6002 Static Mesh Improvement Mod - SMIM](https://www.nexusmods.com/skyrimspecialedition/mods/659)：更好的静态纹理，[汉化文件](https://www.nexusmods.com/skyrimspecialedition/mods/61705)
 - [6003 Realistic Water Two SE](https://www.nexusmods.com/skyrimspecialedition/mods/2182)：水优化，[汉化文件](https://www.nexusmods.com/skyrimspecialedition/mods/61902)
 - [6004 Enhanced Blood Textures](https://www.nexusmods.com/skyrimspecialedition/mods/2357)：血液纹理增强
 - [6005 Immersive College of Winterhold SE](https://www.nexusmods.com/skyrimspecialedition/mods/17004)：沉浸式冬堡学院，需自己手动汉化
@@ -151,7 +153,7 @@
 - [7003 SexLab Animation Loader SSE 1.0.0](https://www.loverslab.com/files/file/5328-sexlab-animation-loader-sse/)：动画加载器，[汉化版](http://www.9damaogame.com/forum.php?mod=viewthread&tid=92140&highlight=SexLab%2BAnimation%2BLoader)
 - [7004 Sexlab tools for SE](https://www.loverslab.com/files/file/10660-sexlab-tools-for-se-patched/)：Sexlab 工具，允许按 H 选择不同姿势，[汉化版](http://www.9damaogame.com/thread-33879-1-1.html)
 - [7005 Dynamic Animation Replacer](https://www.nexusmods.com/skyrimspecialedition/mods/33746)：`7401 Sexlab Defeat Baka Edition` 建议前置
-- [7006 Fuz Ro D-oh - Silent Voice](https://www.nexusmods.com/skyrimspecialedition/mods/15109)：`7401 Sexlab Defeat Baka Edition` 所需前置
+- [unused 7006 Fuz Ro D-oh - Silent Voice](https://www.nexusmods.com/skyrimspecialedition/mods/15109)：`7401 Sexlab Defeat Baka Edition` 所需前置
 - [7007 Furniture Sex Framework 0.14.3](https://www.loverslab.com/files/file/13464-furniture-sex-framework/)：支持家具动画所需前置
 - [7008 More Nasty Critters Special Edition 12.6](https://www.loverslab.com/files/file/5464-more-nasty-critters-special-edition/)：要求前置 Jcontainers(202), Creatureframework(702)，有两个子 mod，用于生物 sex 的支持
 
