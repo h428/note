@@ -78,6 +78,11 @@ export Ali_Key="xxx" \
 ## 生成泛域名证书
 
 - 注意，根据不同的域名商选择不同的 dns 商：如 dns_ali，dns_dp 等
+- acme.sh 现在默认使用 ZeroSSL 生成证书，其需要在 ~/.acme.sh/account.conf 中添加邮箱
+```conf
+ACCOUNT_EMAIL='xxx@xxx.com'
+```
+- 也可以切换回原有的 Let's Encrypt：`acme.sh --set-default-ca --server letsencrypt`
 - 执行命令生成证书：`acme.sh --issue --dns dns_ali -d h428.top -d *.h428.top`，此处基于域名 h428.top
 - 正常情况下，该命令执行成功需要 120 秒
 - 如果这个过程中报错，可以加上 debug 参数，重新执行一遍，查看更详尽的错误原因（90% 的问题都在于 token 不合法）
@@ -123,5 +128,29 @@ cp objs/nginx /usr/local/nginx/sbin/nginx
 - 打开 nginx 安装目录的 nginx.conf 配置文件。因为是泛域名证书，所以当前域名以及当前域名下的所有次级子域名可以共用一个证书
 - 例如下述配置：
 ```conf
+# 第一个子域名
+server {
+	# https默认监听的是443 端口
+	listen       443 ssl;
+	server_name b.msh.com  ;
+	# 指定证书位置
+    ssl_certificate /mycertify/ssl/msh.com.cer;  
+	ssl_certificate_key /mycertify/ssl/msh.com.key;
+	
+	# 下方的5个配置项是和https无关的，如果想让nginx能正常代理websocket，则必须加上
+	# 防止nginx代理websocket时，每隔75秒自动中断
+	proxy_connect_timeout 7d;
+	proxy_send_timeout 7d;
+	proxy_read_timeout 7d;
+	# 防止nginx代理websocket 报错
+	proxy_set_header Upgrade $http_upgrade;
+	proxy_set_header Connection "upgrade";
 
+
+	location / {
+		proxy_pass http://localhost:8585;
+	}
+}
+
+# 其他的同级域名的证书配置，也可以照搬同上这样配置
 ```
