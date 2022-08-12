@@ -37,6 +37,26 @@ export PATH=$MAVEN_HOME/bin:$PATH
     <mirrorOf>central</mirrorOf>        
 </mirror>
 ```
+- 同时配置默认编译版本为 1.8，找到 profiles 块添加下述配置
+```xml
+<profiles>
+    <profile>
+        <id>jdk-1.8</id>
+
+        <activation>
+        <activeByDefault>true</activeByDefault>>
+        <jdk>1.8</jdk>
+        </activation>
+
+        <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+        </properties>
+    </profile>
+</profiles>
+```
+- 安装 idea 常用插件：lombox，mybatisx
 
 # 2. 常用
 
