@@ -504,21 +504,57 @@ cp mycustom.cnf /var/lib/docker/volumes/anno_conf/_data/conf.d/
 
 ## 8.2 安装 mysql
 
+**MySQL 5.7**
+
 - docker hub 上查找 mysql 镜像 : `docker search mysql`
-- 拉取 mysql 5.6 镜像 : `docker pull mysql:5.7`
-- 运行容器 : `docker run -p 12345:3306 --name mysql -v /hao/mysql/conf:/etc/mysql -v /hao/mysql/logs:/var/log/mysql -v /hao/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root -d  mysql:5.7`
+- 拉取 mysql 5.7 镜像 : `docker pull mysql:5.7`
+- 运行容器：
+```bash
+docker run -p 12345:3306 \
+--name mysql \
+-v /volume/mysql/conf:/etc/mysql \
+-v /volume/mysql/logs:/var/log/mysql \
+-v /volume/mysql/data:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=root \
+-d mysql:5.7
+```
 - 连接到客户端 : `docker exec -it mysql mysql -uroot -proot`
 - 创建数据库和表，插入数据
 - 在本机使用类似 Navicat 之类的工具以 12345 端口连接数据库，验证可以成功连接
 - 数据备份 : `docker exec mysql sh -c 'exec mysqldump --all-databases -uroot -proot' > /hao/mysql/all-databases.sql`
+- 配置 MySQL 默认编码，在 conf 数据卷下创建 my.cnf 文件，填入下述内容
+```conf
+[client]
+default-character-set=utf8
+
+[mysql]
+default-character-set=utf8
+
+[mysqld]
+init_connect='SET collation connection = utf8_unicode_ci'
+init_connect='SET NAMES utf8'
+character_set_server=utf8
+collation-server=utf8_unicode_ci
+skip-character-set-client-handshake
+skip-name-resolve
+```
+
 
 ## 8.3 安装 Redis
 
-- 从 docker hub 拉取 3.2 版本 : `docker pull redis:3.2`
-- 运行容器 : `docker run -p 6379:6379 -v /hao/redis/data:/data -v /hao/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf -d redis:3.2 redis-server /usr/local/etc/redis/redis.conf --appendonly yes`
-- 创建宿主机的 `vim /hao/redis/conf/redis.conf/redis.conf` 文件，并写入配置
+- 从 docker hub 拉取 5.0 版本 : `docker pull redis:5.0`
+- 运行 redis 5.0 实例，指定实例的配置文件为 /usr/local/etc/redis/redis.conf 并将其通过数据卷映射到宿主机的 /volume/redis/conf/redis.conf，同时
+```bash
+docker run -p 6379:6379 \
+--name redis \
+-v /volume/redis/data:/data \
+-v /volume/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf \
+-d redis:5.0 \
+redis-server /usr/local/redis/conf/redis.conf --appendonly yes
+```
+- 创建宿主机的 `vim /volume/redis/conf/redis.conf/redis.conf` 文件，并写入配置
 - 连接 redis : `docker exec -it id redis-cli` 并写入数据
-- 验证持久化文件生成 : `cat /hao/redis/data/appendonly.aof`
+- 验证持久化文件生成 : `cat /volume/redis/data/appendonly.aof`
 
 
 # 9. 其他
