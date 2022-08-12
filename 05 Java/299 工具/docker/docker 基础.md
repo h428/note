@@ -145,6 +145,7 @@ sudo systemctl restart docker
 - `docker exec -t hhh ls -l /tmp` : 直接对容器执行命令
 - `docker exec -t hhh /bin/bash` : 执行容器的 /bin/bash 命令，相当于直接进入容器
 - `docker cp 容器id或名称:容器路径 宿主机路径` : 从容器内拷贝文件到宿主机上，例如 `docker cp h1:/tmp/yum.log /root`
+- 设置实例随 docker 启动而启动：`docker update 实例名称 --restart=always`
 
 
 ### 3.3.3 综合练习
@@ -543,18 +544,37 @@ skip-name-resolve
 ## 8.3 安装 Redis
 
 - 从 docker hub 拉取 5.0 版本 : `docker pull redis:5.0`
-- 运行 redis 5.0 实例，指定实例的配置文件为 /usr/local/etc/redis/redis.conf 并将其通过数据卷映射到宿主机的 /volume/redis/conf/redis.conf，同时
+- 首先在宿主机创建 redis.conf 配置文件，否则数据卷映射会默认变为目录：
+```
+mkdir -p /volume/redis/conf
+touch /volume/redis/conf/redis.conf
+```
+- 运行 redis 5.0 实例，指定实例 Redis 的配置文件为 /usr/local/redis/conf/redis.conf 并将其通过数据卷映射到宿主机的 /volume/redis/conf/redis.conf，同时
 ```bash
 docker run -p 6379:6379 \
 --name redis \
 -v /volume/redis/data:/data \
--v /volume/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf \
+-v /volume/redis/conf/redis.conf:/usr/local/redis/conf/redis.conf \
 -d redis:5.0 \
 redis-server /usr/local/redis/conf/redis.conf --appendonly yes
 ```
-- 创建宿主机的 `vim /volume/redis/conf/redis.conf/redis.conf` 文件，并写入配置
-- 连接 redis : `docker exec -it id redis-cli` 并写入数据
-- 验证持久化文件生成 : `cat /volume/redis/data/appendonly.aof`
+- 测试连接 redis : `docker exec -it id redis-cli` 并写入数据
+- 验证持久化文件生成 : `cat /volume/redis/data/appendonly.aof`，可通过重启 redis 实例查看数据是否仍然存在
+
+**方式二**
+
+- 上述通过 docker 指令参数的方式直接开启 Redis 的 aof 持久化，也可以省略该参数，直接在 redis.conf 中添加 `appendonly yes` 开启持久化，大致步骤如下所示
+```bash
+docker run -p 6379:6379 \
+--name redis \
+-v /volume/redis/data:/data \
+-v /volume/redis/conf/redis.conf:/usr/local/redis/conf/redis.conf \
+-d redis:5.0 \
+redis-server /usr/local/redis/conf/redis.conf
+
+# 修改宿主机的 /volume/redis/conf/redis.conf，添加 appendonly yes 配置
+vim /volume/redis/conf/redis.conf
+```
 
 
 # 9. 其他
