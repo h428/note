@@ -17,8 +17,8 @@
 
 **手动设置镜像（不推荐）**
 
-- 手动设置 : `npm config set registry https://registry.npm.taobao.org`
-
+- 手动设置 : `npm config set registry https://registry.npmmirror.com`
+- 现在，taobao 镜像从原有地址 `https://registry.npm.taobao.org` 切换为 `https://registry.npmmirror.com/`
 
 ## 1.2 npm 用法
 
