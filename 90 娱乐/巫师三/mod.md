@@ -1,4 +1,7 @@
 
+- [60 fps GUI](https://www.nexusmods.com/witcher3/mods/3501)：打牌、地图等 60 帧
+- [Always Full Exp - Reforged](https://www.nexusmods.com/witcher3/mods/4406)：低等级任务全经验
+- [Auto Apply Oils](https://www.nexusmods.com/witcher3/mods/625)：自动剑油
 
 - [武器无限耐久](https://www.nexusmods.com/witcher3/mods/342)
 - [昆特牌赌注无上限](https://www.nexusmods.com/witcher3/mods/815)

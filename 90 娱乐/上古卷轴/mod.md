@@ -126,6 +126,7 @@
 - [4015 Quick Loot RE](https://www.nexusmods.com/skyrimspecialedition/mods/21085)：快速拾取
 - [4016 More Informative Console](https://www.nexusmods.com/skyrimspecialedition/mods/19250)：选择对象后，展示详细的控制台信息，可按 tab 修改模式
 - [4017 Nether's Follower Framework](https://www.nexusmods.com/skyrimspecialedition/mods/55653)：多随从管理
+- [4018 Vampire Sunlight Silence](https://www.nexusmods.com/skyrimspecialedition/mods/740)：
 
 
 # 类别 5：机制修改
