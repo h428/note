@@ -1,6 +1,6 @@
 
 
-# 1 第一章 三大组件
+# 1 三大组件
 
 ## 1.1 Channel & Buffer
 
@@ -77,7 +77,7 @@ end
 当程序调用 Selector 的 select 方法，就会阻塞直到某个 Channel 发生了读写就绪事件，当事件发生后，select 方法就会返回这些事件并交给 thread 来处理。
 
 
-# 2 第二章 ByteBuffer
+# 2 ByteBuffer
 
 ## 2.1 入门案例
 
@@ -916,7 +916,7 @@ private static void copy(String from, String to) {
 }
 ```
 
-## Path 类
+## 3.3 Path 类
 
 jdk7 引入了 Path 和 Paths 类，Path 用来表示文件路径，Paths 是工具类，用来获取 Path 实例。简单用法如下：
 ```java
@@ -942,7 +942,7 @@ System.out.println(source);
 System.out.println(source.normalize());
 ```
 
-## Files 类
+## 3.4 Files 类
 
 Files 也是 jdk 1.7 新增的文件工具类，主要配合 Path 使用，提供一些文件的常用方法，例如下列 demo 展示了一些常用的读取文件信息的方法：
 ```java
@@ -1052,6 +1052,6 @@ public void test() throws IOException {
 }
 ```
 
-# 4 第三章 参考文献
+# 4 参考文献
 
 - [黑马程序员 Netty 全套教程](https://www.bilibili.com/video/BV1py4y1E7oA)
