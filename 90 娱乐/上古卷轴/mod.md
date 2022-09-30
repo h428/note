@@ -118,7 +118,7 @@
 - [4008 Protect your People](https://www.nexusmods.com/skyrimspecialedition/mods/10297)：随从以及 NPC 不会被他人杀死
 - [4009 Acquisitive Soul Gems Multithreaded](https://www.nexusmods.com/skyrimspecialedition/mods/1469)：灵魂石多线程，注意有汉化包
 - [4010 Alternate Start - Live Another Life - SSE](https://www.nexusmods.com/skyrimspecialedition/mods/272)：不一样的人生
-- [4010 Alternate Start - Live Another Life - SSE](https://www.nexusmods.com/skyrimspecialedition/mods/272)：不一样的人生汉化
+- [4010 Alternate Start - Live Another Life - SSE](https://www.nexusmods.com/skyrimspecialedition/mods/18207)：不一样的人生汉化
 - [4011 Breezehom](https://www.nexusmods.com/skyrimspecialedition/mods/2829)：微风阁 mod，[汉化版](http://www.9damaogame.com/forum.php?mod=viewthread&tid=10908&highlight=Breezehome)
 - [4012 Copy and Paste in Console](https://www.nexusmods.com/skyrimspecialedition/mods/30928)：控制台可粘贴
 - [4013 Fast Travel When Indoors](https://www.nexusmods.com/skyrimspecialedition/mods/26536)：室内快速旅行，[汉化版](http://www.9damaogame.com/forum.php?mod=viewthread&tid=186874&highlight=%BF%EC%CB%D9%C2%C3%D0%D0)
