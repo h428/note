@@ -1,5 +1,3 @@
-
-
 # 1 三大组件
 
 ## 1.1 Channel & Buffer
@@ -7,16 +5,18 @@
 NIO 即常说的 non-blocking io，非阻塞 IO（也有人说是 New IO），其包含三大组件：Channel、Buffer 和 Selector。
 
 Channel 类似于 Stream，它是用于读写数据的双向通道，我们可以从 Channel 中将数据读入 Buffer，也可以将缓存在 Buffer 中的数据写入 Channel。和 Steam 有所不同的是，Java 中的 Stream 往往是单向通道，即一个流要么是输入流要么是输出流，而 Channel 则是双向通道，且其相比 Stream 更为底层。常见的 Channel 有：
+
 - FileChannel：用作文件数据传输的通道
 - DatagramChannel：做 UDP 网络编程时的数据传输通道
 - SocketChannel：做 TCP 数据传输的通道，客户端和服务端都能用
 - ServerSocketChannel：做 TCP 数据传输的通道，专用于服务器
 
 Buffer 则用来缓冲读写数据，常见的 Buffer 有：
+
 - ByteBuffer：以字节为单位来缓冲数据，最常用的缓冲类，其是一个抽象类，常见实现类包括：
-    - MappedByteBuffer
-    - DirectByteBuffer
-    - HeapByteBuffer
+  - MappedByteBuffer
+  - DirectByteBuffer
+  - HeapByteBuffer
 - ShortBuffer
 - IntBuffer
 - LongBuffer
@@ -26,7 +26,6 @@ Buffer 则用来缓冲读写数据，常见的 Buffer 有：
 
 从上述名称可以推断出来，不同类型的 Buffer 用与支持不同类型的数据的缓冲，但后面几种用得较少，使用得最多的还是 ByteBuffer 和它的实现类。
 
-
 ## 1.2 Selector
 
 Selector 单从字面意思不好理解，需要结合服务器的设计演变过程来理解它的用途。
@@ -34,6 +33,7 @@ Selector 单从字面意思不好理解，需要结合服务器的设计演变�
 首先，作为一个服务器，必然是需要处理多个客户端的连接的，而如何达到处理多客户端连接的目的，服务器的设计思路是一步步演变的，他们经过的设计阶段有：多线程版本 BIO、线程池版本 BIO 和 NIO。
 
 多线程版本 BIO 的设计思路为：对于每个客户端的 socket 连接，都创建一个新的线程去处理对应的实现，客户端未发送数据且不释放时，对应的线程会阻塞住，即 BIO，对应的设计思路图如下图所示。但由于线程本身会占用一定的内存资源（比如 Windows 上默认一个线程占用 1M 内存），因此若客户端数量剧增将导致大量的内存占用和线程上下文切换，故只适合连接数较少的情况。
+
 ```mermaid
 graph TD
 subgraph 多线程版
@@ -44,11 +44,13 @@ end
 ```
 
 多线程版本服务器的缺点：
+
 - 内存占用高
 - 线程上下文切换成本高
 - 只适合连接数少的情况
 
 多线程版本由于与 socket 对应的处理线程数量过多从而产生问题，因此服务器的设计进一步演变为线程池版本 BIO，其设计思路为：使用一个线程池维护处理线程以避免线程数量溢出，同时让每个线程在处理完一个连接的请求后可以继续处理其他连接，对应的设计思路图如下图所示。在该种设计思路下，虽然引入了线程池避免了线程数量溢出，但本质上还是采用基于 BIO 的一个线程对应一个 socket 的模式，同一个时间内一个线程只能处理一个 socket，当 socket 未释放时，对应的处理线程会一直阻塞住，并无法去处理其他 socket 请求，故该种模式下适合短连接的场景，故早期的很多服务器都设计为短连接的模式，采用阻塞式 IO。
+
 ```mermaid
 graph TD
 subgraph 线程池版
@@ -60,10 +62,12 @@ end
 ```
 
 线程池版本服务器的缺点：
+
 - 阻塞模式下，线程仅能处理一个 socket 连接
 - 仅适合短连接场景：很多早期的服务器为了避免阻塞，都设计为短连接的版本，发送完请求则立即关闭连接，例如早期的 Tomcat 就是这样设计的
 
 由于 BIO 一响应一应答模型的局限性，进一步出现了 NIO 模型，其引入了 Selector 来管理多个 Channel，获取并监听在各个 Channel 上发生的事件，这些 Channel 工作在非阻塞模式下，使得处理线程不至于吊死在一个 Channel 上，适合连接数特别多但流量低的场景，其设计思路图如下图所示：
+
 ```mermaid
 graph TD
 subgraph selector 版
@@ -76,7 +80,6 @@ end
 
 当程序调用 Selector 的 select 方法，就会阻塞直到某个 Channel 发生了读写就绪事件，当事件发生后，select 方法就会返回这些事件并交给 thread 来处理。
 
-
 # 2 ByteBuffer
 
 ## 2.1 入门案例
@@ -84,6 +87,7 @@ end
 我们使用入门案例来讲解 ByteBuffer 的使用。
 
 首先，为了方便后续的开发，提前在 maven 中引入 netty 以及其他基本相关依赖：
+
 ```xml
 <dependency>
   <groupId>io.netty</groupId>
@@ -113,6 +117,7 @@ end
 ```
 
 我们创建一个 date.txt 文件，其内容为 `1234567890abc`，之后我们使用 nio 从文件中读取内容，首先构建该文件对应的 FileChannel，然后从 FileChannel 中读取文件到 ByteBuffer 中，最后将 ByteBuffer 转化为字符并打印，具体 demo 如下所示：
+
 ```java
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -180,18 +185,19 @@ public class ByteBufferTest {
 ## 2.2 ByteBuffer 使用步骤
 
 我们一般会按照下列步骤使用 ByteBuffer：
--  从 channel 向 buffer 写入数据，例如调用 channel.read(buffer)
--  调用 flip() 将 buffer 切换至读模式
--  从 buffer 读取数据，例如调用 buffer.get()
--  调用 clear() 或 compact() 将 buffer 切换至写模式，准备进行下一轮的文件数据读取
--  重复 1~4 步骤
 
+- 从 channel 向 buffer 写入数据，例如调用 channel.read(buffer)
+- 调用 flip() 将 buffer 切换至读模式
+- 从 buffer 读取数据，例如调用 buffer.get()
+- 调用 clear() 或 compact() 将 buffer 切换至写模式，准备进行下一轮的文件数据读取
+- 重复 1~4 步骤
 
 ## 2.3 ByteBuffer 结构
 
 ### 2.3.1 ByteBuffer 结构分析
 
 ByteBuffer 本质上就是一个定长 byte 数组用作缓存，其主要有三个重要属性：
+
 - capacity：容量，即创建 ByteBuffer 时声明的数组长度
 - position：当前指针的下标，ByteBuffer 有读模式和写模式，每种模式有各自维护的 position
 - limit：写入限制，初始为 capacity
@@ -216,6 +222,7 @@ ByteBuffer 本质上就是一个定长 byte 数组用作缓存，其主要有三
 ### 2.3.2 ByteBuffer 调试工具类
 
 下面的工具类可以很方便地打印 ByteBuffer 当前的缓存内容，便于学习调试：
+
 ```java
 import static io.netty.util.internal.MathUtil.isOutOfBounds;
 import static io.netty.util.internal.StringUtil.NEWLINE;
@@ -396,6 +403,7 @@ public class ByteBufferUtil {
 ### 2.3.3 ByteBuffer 结构简单验证
 
 下面的代码对 ByteBuffer 的结构做了简单的验证，首先
+
 ```java
 @Slf4j
 public class ByteBufferTest {
@@ -464,6 +472,7 @@ position: [3], limit: [7]
 ### 2.4.1 分配空间
 
 使用 `ByteBuffer.allocation(int)` 分配空间，其会返回一个 byteBuffer 实例
+
 ```java
 ByteBuffer buf = ByteBuffer.allocate(16);
 ```
@@ -471,8 +480,10 @@ ByteBuffer buf = ByteBuffer.allocate(16);
 ### 2.4.2 向 ByteBuffer 实例写入数据
 
 向 ByteBuffer 实例写入数据有两种方法：
+
 - 调用 channel 的 read(byteBuffer) 方法，其会从 channel 读取数据并写入到 byteBuffer
 - 调用 byteBuffer 自身的 put 方法直接写入数据
+
 ```java
 // 从 channel 中读取并写入 buf
 int readBytes = channel.read(buf);
@@ -484,8 +495,10 @@ buf.put((byte) 127);
 ### 2.4.3 从 ByteBuffer 实例读取数据
 
 从 ByteBuffer 实例读取数据同样有两种方法：
+
 - 调用 channel 的 write 方法会从 byteBuffer 读取数据并写入到 channel 中
 - 直接调用 byteBuffer.get() 或 byteBuffer.get(i) 方法从 byteBuffer 读取数据
+
 ```java
 // 从 buf 读取数据并写入到 channel 中
 int writeBytes = channel.write(buf);
@@ -496,10 +509,12 @@ byte c = buf.get(0);
 ```
 
 其中 get() 方法会让 position 指针往后移动，如果想重复读取数据，可以：
+
 - 调用 rewind 方法将 position 重置为 0，从头读取
 - 调用 get(int i) 方法可以直接获取指定位置 i 的内容，它不会移动 position 指针
 
 下面是对 put, get 和 rewind 方法的简单测试：
+
 ```java
 public class ByteBufferTest {
 
@@ -538,10 +553,10 @@ public class ByteBufferTest {
 
 ### 2.4.4 mark 和 reset
 
-
 mark() 可以在当前 position 指针所在位置添加一个标记，当调用 reset 方法时则
 
 下面是对 mark 和 reset 的简单测试代码：
+
 ```java
 public class ByteBufferTest {
 
@@ -561,7 +576,7 @@ public class ByteBufferTest {
 
         // 读取 ab
         printTwoCharacter(buffer);
-        
+
         // 使用 mark 标记 position = 2 的位置
         buffer.mark();
 
@@ -584,15 +599,18 @@ public class ByteBufferTest {
 我们知道 ByteBuffer 存储的本质就是字节数组，因此字符串和 ByteBuffer 的互转就是基于字符串的字节数组来实现的。
 
 从字符串转化为 ByteBuffer 本质上就是需要获取字符串在某一编码下的字节数组，然后将字节数组写入到 ByteBuffer 中，常见有下列三种写法：
+
 - 原始方式：自己创建合适长度的 ByteBuffer 实例并存储字符串指定编码的字节数组
 - 使用 Charset.encode 方法：Charset 是由 nio 定义的一个抽象编码类，并提供常见的字符编码的匿名实现实例，使用指定实现类的 encode 方法便可以直接获取对应的 ByteBuffer，同时启会自动切换为读模式
 - 使用 ByteBuffer.wrap(byte[]) 方法：也可以在获取字符串某一编码的字节数组后，直接使用 wrap 包装为 ByteBuffer，该方法同样会自动转换为读模式
 
 而从 ByteBuffer 转换为字符串，本质上就是从 ByteBuffer 中读取到字节数组，并按指定编码解码为字符串即可，常见有两种写法：
+
 - 原始方式：仍然自己手动从 byteBuffer 读到字节数组，然后以指定字节数组和字符编码的方式创建字符串即可
 - 使用 Charset.decode 方法：可以直接使用指定字符编码对应的 Charset 实例的 decode 方法，从 ByteBuffer 中获得转换，其得到的是一个 CharBuffer，调用 toString 即可获得字符串
 
 下列代码测试了字符串与 ByteBuffer 的互转，主要基于 UTF-8 编码进行：
+
 ```java
 public class ByteBufferTest {
 
@@ -605,7 +623,7 @@ public class ByteBufferTest {
         ByteBuffer simpleBuffer = ByteBuffer.allocate(11);
         simpleBuffer.put(s.getBytes(StandardCharsets.UTF_8));
         debugAll(simpleBuffer);
-        
+
         // 方式二：使用 nio 提供的 Charset.encode(String) 方法
         // Charset 为抽象字符类，有不同的子实现类，每一种实现类都对应一种编码
         // 该种方式会在内部创建并返回 ByteBuffer，同时会自动切换为读模式
@@ -639,11 +657,13 @@ public class ByteBufferTest {
 ## 2.5 分散读取 Scattering Reads
 
 假设有一段文本 parts.txt，其内容如下，我们需要分别读取出三个单词，则可以采用分散读取的功能
+
 ```text
 onetwothree
 ```
 
 分散读取时可以提供一个 ByteBuffer 数组，其会逐步从前往后填满 ByteBuffer，因此我们提供一个长度为 3 的 ByteBuffer 数组，各个 ByteBuffer 的长度分别为 3、3、5 即可成功分散读取，示例代码如下：
+
 ```java
 public class ByteBufferTest {
     // parts.txt 内容为：onetwothree
@@ -675,10 +695,12 @@ public class ByteBufferTest {
 ## 2.6 聚合写入 Gathering Writes
 
 假设现在有三个 ByteBuffer，现在想将这三个 ByteBuffer 写入到一个文件，主要有两种思路：
+
 - 可以对通道调用三次写入方法，但这样存在多次 IO，效率较低
 - 还可以采用聚合写入的方式，直接提供一个长度为 3 的 ByteBuffer 数组，Channel 会自动按序合并多个 ByteBuffer 为一个并执行写入，该种方式只会触发一次 IO
 
 下面为聚合写入的简单测试代码，即以聚合写入的方式将字符串 `hello, world!` 写入到文件：
+
 ```java
 public class ByteBufferTest {
     public static void main(String[] args) {
@@ -700,17 +722,20 @@ public class ByteBufferTest {
 ## 2.7 综合练习：粘包半包解析
 
 网络上有多条数据发送给服务端，数据之间使用 `\n` 进行分隔，但由于某种原因这些数据在接收时，被进行了重新组合，例如原始数据有 3 条为：
+
 - Hello,world\n
 - I'm zhangsan\n
 - How are you?\n
 
 但由于网络传输中黏包和半包的原因，变成了下面的两个 byteBuffer (黏包，半包)
+
 - Hello,world\nI'm zhangsan\nHo
 - w are you?\n
 
 现在要求你编写程序，将错乱的数据恢复成原始的按 `\n` 分隔的数据
 
 针对上述需求，实现代码如下：
+
 ```java
 public class ByteBufferTest {
 
@@ -770,12 +795,12 @@ public class ByteBufferTest {
 }
 ```
 
-
 ## 2.8 补充
 
 ### 2.8.1 ByteBuffer 常见实现类
 
 ByteBuffer 有两个最常见的实现类，分别是 `java.nio.HeapByteBuffer` 和 `java.nio.DirectByteBuffer`。其中 HeapByteBuffer 分配在堆内存上，读写效率较低，会受到 GC 的影响（GC 时会拷贝，变换存储位置等）。而 DirectByteBuffer 分配在直接内存上，读写效率较高（少一次拷贝），且不会受到 GC 影响，但分配的效率较低。
+
 ```java
 public class ByteBufferTest {
     public static void main(String[] args) {
@@ -792,6 +817,7 @@ public class ByteBufferTest {
 FileChannel 我们前面在读写文件时已经用过，其是用于文件读写的通道。注意 FileChannel 只能工作在阻塞模式下，无法和 Selector 配合完成非阻塞式的 IO，只有我们后面介绍的和网络相关的 SocketChannel，才能和 Selector 配合工作在非阻塞模式下。
 
 如何获取 FileChannel：不能直接打开 FileChannel，而必须通过 FileInputStream、FileOutputStream 或 RandomAccessFile 来获取 FileChannel，它们都有 getFileChannel 方法。此外，FileChannel 虽然是可读可写的，但是根据获取 FileChannel 的源头就已经决定了该 FileChannel 是可读的还是可写的：
+
 - 通过 FileInputStream 获取的 channel 只能读
 - 通过 FileOutputStream 获取的 channel 只能写
 - 通过 RandomAccessFile 是否能读写由构造 RandomAccessFile 时传入的读写模式决定
@@ -799,6 +825,7 @@ FileChannel 我们前面在读写文件时已经用过，其是用于文件读�
 ### 3.1.1 读取
 
 对于 FileChannel 的读取操作，首先要准备一个写模式的 ByteBuffer，然后从 FileChannel 读取数据并写到 ByteBuffer 中：
+
 ```java
 int readBytes = channel.read(buffer);
 ```
@@ -806,6 +833,7 @@ int readBytes = channel.read(buffer);
 ### 3.1.2 写入
 
 对于 FileChannel 的写入操作，需要将要写入的数据缓存在一个读模式的 ByteBuffer 中，然后调用 FileChannel 的 write 方法进行写入。
+
 ```java
 while (buffer.hasRemaining()) {
     channel.write(buffer);
@@ -815,6 +843,7 @@ while (buffer.hasRemaining()) {
 此外，需要注意的是，上述代码中，我们的写入是写在循环中的。对于 FileChannel，其传输能力没有限制，一次 write 就可以写完毕了，那么可以不需要循环，但是对于后续网络编程的 SockeChannel，其传输数据的能力是有限的，未必能一次性传输完 Buffer 中的所有内容，因此要采用循环写入的方式。
 
 下面是基于 FileChannel 和 ByteBuffer 实现的文件拷贝的函数：
+
 ```java
 public class ByteBufferTest {
     private static void copy(String from, String to) {
@@ -855,6 +884,7 @@ Channel 必须关闭，但调用了 FileInputStream、FileOutputStream 和 Rando
 FileChannel 内部也维护了一个 position，表示当前读取到文件位置。
 
 可以使用 position() 方法获取和设置文件通道的当前位置，示例代码如下：
+
 ```java
 // 获取 position 位置
 long pos = channel.position()
@@ -873,12 +903,12 @@ channel.position(val);
 
 操作系统出于性能的考虑，会将数据缓存，不是立刻写入磁盘，可以调用 `force(true)` 方法将文件内容和元数据（文件的权限等信息）立刻写入磁盘。
 
-
 ## 3.2 两个 Channel 传输数据
 
 两个 Channel 之间可以直接使用 `transferTo(源通道拷贝起始位置， 拷贝大小， 目标通道)` 方法传输数据并返回实际传输字节数，且该方法比我们自己读写文件效率更高，因为操作系统底层会利用零拷贝技术进行优化
 
 例如，下述代码实现了文件的拷贝，相比前面我们自己创建 buffer 进行拷贝更加地简洁：
+
 ```java
 public class ByteBufferTest {
     private static void copy(String from, String to) {
@@ -898,6 +928,7 @@ public class ByteBufferTest {
 ```
 
 需要特别注意，transferTo 方法单次传输有上限，上限为 2G，因此上述代码对于超过 2G 的文件拷贝存在 bug，其只会拷贝前 2G 的文件内容，后面的内容不拷贝，因此我们需要进一步改进。改进的方式是利用 position 进行多次传输，改进后的文件拷贝方法如下所示：
+
 ```java
 private static void copy(String from, String to) {
     try (
@@ -916,9 +947,10 @@ private static void copy(String from, String to) {
 }
 ```
 
-## 3.3 Path 类
+## 3.3 Path 和 Paths 类
 
-jdk7 引入了 Path 和 Paths 类，Path 用来表示文件路径，Paths 是工具类，用来获取 Path 实例。简单用法如下：
+jdk7 引入了 Path 和 Paths 类，Path 用来表示文件路径，Paths 是对应的工具类，用来获取 Path 实例。简单用法如下：
+
 ```java
 // 相对路径，使用 user.dir 来定位 data.txt
 Path source = Paths.get("data.txt");
@@ -934,6 +966,7 @@ Path source = Paths.get("c:/tmp", "data.txt");
 ```
 
 其中，对于 Path 的获取时，可以直接使用 `.` 和 `..` 分别表示当前目录和上一级目录，对于这类路径可以使用 normalize() 方法进行正常话，即可以打印出真正的路径，例如下述代码：
+
 ```java
 Path source = Paths.get("c:/tmp/test/../data.txt");
 // 会打印 c:\tmp\test\..\data.txt
@@ -944,7 +977,10 @@ System.out.println(source.normalize());
 
 ## 3.4 Files 类
 
-Files 也是 jdk 1.7 新增的文件工具类，主要配合 Path 使用，提供一些文件的常用方法，例如下列 demo 展示了一些常用的读取文件信息的方法：
+### 基本接口
+
+Files 工具类也是 jdk 1.7 新增的文件工具类，主要配合 Path 使用，提供一些文件的常用方法，包括判断路径是否存在、是否文件、是否目录等，下列 demo 展示了一些常用的读取文件信息的方法：
+
 ```java
 public class ByteBufferTest {
 
@@ -1001,7 +1037,8 @@ public class ByteBufferTest {
 }
 ```
 
-此外还有一些操作类方法的 demo 如下：
+此外 Files 工具类该提供一些操作类方法，包括创建目录、创建文件、移动文件等，使用 demo 如下：
+
 ```java
 public static void main(String[] args) throws IOException {
     Path source = Paths.get("c:/tmp/test/../data.txt");
@@ -1024,7 +1061,12 @@ public static void main(String[] args) throws IOException {
 }
 ```
 
-下面代码 Files.walkFileTree 的遍历使用样例：
+### Files.walkFileTree 树形遍历
+
+`Files.walkFileTree(Path start, FileVisitor<? super Path> visitor)` 方法提供了一种对指定目录进行树形遍历的方法，可以通过覆盖 SimpleFileVisitor 类中的方法完成对文件和目录的访问。
+
+下面代码为使用 Files.walkFileTree 对指定目录进行遍历：
+
 ```java
 @Test
 public void test() throws IOException {
@@ -1051,6 +1093,67 @@ public void test() throws IOException {
     System.out.println("fileCount: " + fileCount);
 }
 ```
+
+由于存在文件的目录无法直接删除，我们可以基于 Files.walkFileTree 遍历目录，先删除文件，然后再删除目录，由于删除目录要在所有内部文件删除之后完成，因此要在 postVisitDirectory 方法内删除目录，示例代码如下：
+
+```java
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Files.walkFileTree(Paths.get("E:\\downloads\\base_user - 副本"), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+                Files.delete(file);
+                return super.visitFile(file, attrs);
+            }
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                throws IOException {
+                // 子文件全部访问结束后，会进入 postVisitDirectory 方法
+                Files.delete(dir);
+                return super.postVisitDirectory(dir, exc);
+            }
+        });
+    }
+}
+```
+
+### Files.walk 流式遍历
+
+`Files.walt(Path)` 则提供了一种对指定目录的流式遍历方法，其会返回指定目录下所有子目录和文件组成的 `Stream<Path>`，使得我们可以使用流式接口进行操作。
+
+下述代码为使用 Files.walk 实现的多级目录拷贝：
+
+```java
+public class Main {
+    public static void main(String[] args) throws IOException {
+        String srcFolder = "E:\\downloads\\base_user";
+        String destFolder = "E:\\tmp\\base_user";
+
+        // 遍历指定目录并返回一个 Stream<Path>
+        Files.walk(Paths.get(srcFolder))
+            .forEach(path -> {
+
+                // 对源目录/文件做前缀替换，获取对应的目标路径
+                Path dest = Paths.get(path.toString().replace(srcFolder, destFolder));
+
+                try {
+                    // 如果是目录则创建同名目录
+                    if (Files.isDirectory(path)) {
+                        Files.createDirectory(dest);
+                        return;
+                    }
+                    // 如果是文件则做文件拷贝
+                    Files.copy(path, dest);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+    }
+}
+```
+
+# 网络编程
 
 # 4 参考文献
 
