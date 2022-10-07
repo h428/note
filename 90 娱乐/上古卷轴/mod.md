@@ -1,11 +1,10 @@
-
 # 准备工作
 
 - 推荐使用重置版，安装时选择英文版，同时运行一次游戏再进行后续的 mod 配置
 - 常见的 mod 管理工具有 4 个，Vortex、NMM、MO、MO2，推荐 Vortex
 - [参考教程](https://www.bilibili.com/video/BV1mC4y187KL)
-- [参考教程2](https://www.bilibili.com/video/BV1R5411H7Nv)
-- Mod Organizer2：将自己的 mods/XXX 文件夹虚拟成游戏的 Data 文件夹进行一一对应，因此 MO2 的文件结构为 mods\指定MOD目录\mod.esp
+- [参考教程 2](https://www.bilibili.com/video/BV1R5411H7Nv)
+- Mod Organizer2：将自己的 mods/XXX 文件夹虚拟成游戏的 Data 文件夹进行一一对应，因此 MO2 的文件结构为 mods\指定 MOD 目录\mod.esp
 - mod 分为自动 mod 和手动 mod，手动 mod 要自己对上上述目录规则，自动 mod 内部一般有个 fomod，在 MO2 内部安装即可
 
 # 替换型前置补丁
@@ -17,6 +16,7 @@
 # 前置依赖
 
 - mod 推荐顺序
+
 ```js
 类别 00：非官方 Bug 修复和其他 Mod 的 ESM 文件
 类别 01：界面前置
@@ -46,8 +46,8 @@
 - [0001 Unofficial Chinese Localisation for Skyrim By WOK Studios for SSE](https://www.nexusmods.com/skyrimspecialedition/mods/10845)：汤镬汉化 mod
 - 此外还有 [Unofficial Chinese Translation for Skyrim Special Edition](https://www.nexusmods.com/skyrimspecialedition/mods/1333)：大学汉化 mod，个人习惯汤镬汉化
 - [0002 Unofficial Skyrim Special Edition Patch](https://www.nexusmods.com/skyrimspecialedition/mods/266)：即常说的 USSEP，由 modder 制作的非官方补丁，用于修复官方没有修复的 Bug
-    - 同时需要为该补丁安装汉化，[USSEP 汤镬汉化](https://www.nexusmods.com/skyrimspecialedition/mods/20940) 不属于完整 mod，为替换文件，直接替换 `002 Unofficial Skyrim Special Edition Patch` 目录下的对应文件即可完成汉化
-    - 注意 `USSEP 汤镬汉化` 依赖 `001 Unofficial Chinese Localisation for Skyrim By WOK Studios for SSE`，注意依赖顺序
+  - 同时需要为该补丁安装汉化，[USSEP 汤镬汉化](https://www.nexusmods.com/skyrimspecialedition/mods/20940) 不属于完整 mod，为替换文件，直接替换 `002 Unofficial Skyrim Special Edition Patch` 目录下的对应文件即可完成汉化
+  - 注意 `USSEP 汤镬汉化` 依赖 `001 Unofficial Chinese Localisation for Skyrim By WOK Studios for SSE`，注意依赖顺序
 - [0003 USSEP Necromage fix](https://www.nexusmods.com/skyrimspecialedition/mods/3202)：USSEP 移除了恢复系 `亡灵 perk` 的增强，该 mod 为反修补，使得该 perk 对吸血鬼等亡灵生效
 - [0004 Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444)：SKSE 插件地址库，注意下载后文件名是 All in one，最好将其改为和 mod 名字统一，目前更好的跳跃和展示敌人等级都依赖该 mod
 - [0005 FNIS, Fores New Idles in Skyrim SE - FNIS SE](https://www.nexusmods.com/skyrimspecialedition/mods/3038)
@@ -57,7 +57,6 @@
 - [0009 Fuz Ro D'oh](https://www.nexusmods.com/skyrimspecialedition/mods/15109)
 - [0010 FileAccess Interface for Skyrim SE Scripts - FISSES](https://www.nexusmods.com/skyrimspecialedition/mods/13956)：FISSES
 - [0011 ConsoleUtilSSE](https://www.nexusmods.com/skyrimspecialedition/mods/24858)
-
 
 # 类别 1：动画前置
 
@@ -73,7 +72,6 @@
 - [1009 CBPC](https://www.nexusmods.com/skyrimspecialedition/mods/21224)
 - [1010 RaceMenu](https://www.nexusmods.com/skyrimspecialedition/mods/19080)：捏脸
 
-
 # 类别 2：作弊 mod
 
 - [2001 Carry Weight Modifier](https://www.nexusmods.com/skyrimspecialedition/mods/2176)：设置负重倍数
@@ -87,14 +85,10 @@
 - [2009 Easy Lockpicking](https://www.nexusmods.com/skyrimspecialedition/mods/4070)：开锁更容易
 - [2010 Store Bodies in Scrolls](https://www.nexusmods.com/skyrimspecialedition/mods/15463)：使用卷轴保存尸体，卷轴找商人购买或者使用控制台
 - [2012 No Player Fall Damage](https://www.nexusmods.com/skyrimspecialedition/mods/5210)：无掉落伤害
-成
+  成
 - [2011 Unlimited Summons](https://www.nexusmods.com/skyrimspecialedition/mods/1554)：修改 `Twin Souls` 使得拥有 1000 个召唤物而不只是两个
 
-
-
-
 # 类别 3：任务对话
-
 
 - [3001 The Paarthurnax Dilemma](https://www.nexusmods.com/skyrimspecialedition/mods/365)：允许叱责俩傻逼刀锋，从而不用杀死帕图纳克斯而继续做刀锋任务，[汉化文件](https://www.nexusmods.com/skyrimspecialedition/mods/21002)
 - [3002 巴兰兹雅之石任务标记](https://www.nexusmods.com/skyrimspecialedition/mods/684)
@@ -104,10 +98,9 @@
 - [3006 VIGILANT SE](https://www.nexusmods.com/skyrimspecialedition/mods/11849)：斯丹达尔警戒者任务，对应[汉化](https://www.nexusmods.com/skyrimspecialedition/mods/33110)，[语音](https://www.nexusmods.com/skyrimspecialedition/mods/11894)
 - [3007 The Forgotten City](https://www.nexusmods.com/skyrimspecialedition/mods/1179)：被遗忘的城市，重置版无汉化
 
-
 # 类别 4：功能增强
 
-- [4001 A Quality World Map](https://www.nexusmods.com/skyrimspecialedition/mods/5804)：高清地图 
+- [4001 A Quality World Map](https://www.nexusmods.com/skyrimspecialedition/mods/5804)：高清地图
 - [4002 A Matter of Time - A HUD clock widget](https://www.nexusmods.com/skyrimspecialedition/mods/12937)：显示时间，前置 mod 为 `003 SkyUI`
 - [4003 Display Enemy Level](https://www.nexusmods.com/skyrimspecialedition/mods/18533)：展示敌人等级和血量，前置依赖为 `101 Address Library for SKSE Plugins`
 - [4004 Unread Books Glow SSE](https://www.nexusmods.com/skyrimspecialedition/mods/1296)：未读书籍发光
@@ -128,13 +121,13 @@
 - [4017 Nether's Follower Framework](https://www.nexusmods.com/skyrimspecialedition/mods/55653)：多随从管理
 - [4018 Vampire Sunlight Silence](https://www.nexusmods.com/skyrimspecialedition/mods/740)：
 
+- [死灵法优化 ](https://www.nexusmods.com/skyrimspecialedition/mods/43500)
 
 # 类别 5：机制修改
 
 - [5001 Ordinator - Perks of Skyrim](https://www.nexusmods.com/skyrimspecialedition/mods/1137)：技能树大修，对应[中文汉化](https://www.nexusmods.com/skyrimspecialedition/mods/57464)
 - [5002 Apocalypse - Magic of Skyrim](https://www.nexusmods.com/skyrimspecialedition/mods/1090)：魔法大修，对应的[中文汉化](https://www.nexusmods.com/skyrimspecialedition/mods/7934)
 - [5003 Immersive Patrols SE](https://www.nexusmods.com/skyrimspecialedition/mods/718)：沉浸式巡逻，对应[汉化](https://www.nexusmods.com/skyrimspecialedition/mods/59047)
-
 
 # 类别 6：环境材质
 
@@ -144,7 +137,6 @@
 - [6004 Enhanced Blood Textures](https://www.nexusmods.com/skyrimspecialedition/mods/2357)：血液纹理增强
 - [6005 Immersive College of Winterhold SE](https://www.nexusmods.com/skyrimspecialedition/mods/17004)：沉浸式冬堡学院，需自己手动汉化
 - [6006 Skyrim Immersive Creatures Special Edition](https://www.nexusmods.com/skyrimspecialedition/mods/12680)：沉浸式生物
-
 
 # 类别 7：实验室
 
@@ -158,14 +150,12 @@
 - [7007 Furniture Sex Framework 0.14.3](https://www.loverslab.com/files/file/13464-furniture-sex-framework/)：支持家具动画所需前置
 - [7008 More Nasty Critters Special Edition 12.6](https://www.loverslab.com/files/file/5464-more-nasty-critters-special-edition/)：要求前置 Jcontainers(202), Creatureframework(702)，有两个子 mod，用于生物 sex 的支持
 
-
 - [7101 Funnybizness SLAL Packs SE 1.0.0](https://www.loverslab.com/files/file/5716-funnybizness-slal-packs-se/)：Funnybizness 的动画资源
 - [7102 ZAZ Animation Packs for SE 1.0.0](https://www.loverslab.com/files/file/5957-zaz-animation-packs-for-se/)：[汉化版](http://www.9damaogame.com/thread-227660-1-1.html)
 - [7103 Anubs Animations for SE](https://www.loverslab.com/files/file/5623-anubs-animations-for-se/)：Anub 动画
 - [7104 Milky animations for SE](https://www.loverslab.com/files/file/6019-milkyslal-for-se/)：Milky 动画
 - [7105 Billyy Animations](https://www.loverslab.com/files/file/3999-billyys-slal-animations-2022-4-2/)：Billyy 动画
 - [7110 7007 家具动画替换](https://www.loverslab.com/files/file/13464-furniture-sex-framework/)
-
 
 - [7301 Schlongs of Skyrim SE 1.1.4](https://www.loverslab.com/files/file/5355-schlongs-of-skyrim-se/)：天际巨根，[汉化版](http://www.9damaogame.com/forum.php?mod=viewthread&tid=186097&highlight=%CC%EC%BC%CA%BE%DE%B8%F9)
 - [7301 Schlongs Of Skyrim Light SE 1.4](https://www.loverslab.com/files/file/3705-schlongs-of-skyrim-light-se/)：天际巨根 light 版
@@ -177,7 +167,3 @@
 - [7401 Sexlab Defeat Baka Edition](https://www.loverslab.com/files/file/18689-sexlab-defeat-baka-edition-lese/)：[汉化文件](http://www.9damaogame.com/thread-225092-1-1.html)
 - [7402 Sexlab Eager NPC](https://www.loverslab.com/files/file/7309-sexlab-eager-npcs-se-slen/)：NPC 性欲，可对话啪啪啪
 - [7403 Naked Defeat SE](https://www.loverslab.com/files/file/17888-naked-defeat-se/)
-
-
-
-
