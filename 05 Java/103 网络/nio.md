@@ -1155,6 +1155,769 @@ public class Main {
 
 # 网络编程
 
+我们知道，在操作系统层面，有 5 种 IO 模型，分别是：阻塞 IO、非阻塞 IO、IO 多路复用、信号驱动 IO 和异步 IO。而在 Java 中，IO 模型经常会描述为 BIO、NIO 和 AIO，它们的对应关系主要有下列描述：
+
+- 阻塞 IO：传统的 BIO 从名字上看也可知道其只支持阻塞 IO（经典的 ServerSocket 和 Socket 那一套），因此大多数教程都拿 BIO 做为阻塞 IO 举例子，但实际上需要注意 NIO 也是具备阻塞模式，并不是使用 NIO 就一定是非阻塞的
+- 非阻塞 IO：只有 NIO 支持设置非阻塞模式，也是 NIO 最朴素的网络编程，由于需要不断轮询导致 CPU 空转，实际中很少使用
+- IO 多路复用：同样只有 NIO 支持，引入 Selector 后的 NIO 网络编程，其同样会阻塞，并存在事件机制，是 Java 中最常用的 IO 模型，Selector 的实现在底层依赖操作系统的多路复用函数 select, poll, epoll 等
+- 信号驱动 IO：在 Java 中很少使用，目前没有看到相关资料，待补充
+- 异步 IO：即 AIO，Java 也提供了 AIO 接口，但实际上优于 Linux 操作系统底层对 AIO 的实现并不好，其本质上仍然是利用多路复用来实现异步 IO 的，从而效率并没有提升，而 Java 程序大多跑在 Linux 操作系统上，因此实际上 AIO 编程也很少使用。
+
+故单从 NIO 角度看，其主要支持阻塞 IO、非阻塞 IO 和 IO 多路复用三种模式，其中阻塞 IO 和非阻塞 IO 是天然支持的，而在引入了 Selector 后同样使得 NIO 支持 IO 多路复用技术，同时和操作系统底层的 IO 多路复用函数 select, poll, epoll 相比，其更上一层，一直一定的事件机制，使得在上层编码得以简化。
+
+## 阻塞模式
+
+阻塞模式下，相关方法都会导致线程暂停，从 Java 网络编程代码的角度看主要有下列两种情况：
+
+- `ServerSocket.accept/ServerSocketChannel.accept` 会在没有连接建立时让线程暂停
+- `Socket.read/SocketChannel.read` 会在没有数据可读时让线程暂停
+
+> 注意上述代码对每种情况都分别列举了传统 BIO 和 NIO 的代码，其中传统的 BIO 网络编程（ServerSocket 和 Socket）只有阻塞模式必然会产生阻塞，而 NIO 下的网络编程（ServerSocketChannel 和 SocketChannel）也是支持阻塞模式的，且其默认工作为阻塞模式，可以通过调用各自 channel 的 `configureBlocking(false)` 设置为非阻塞模式。
+
+阻塞的表现其实就是线程暂停了，暂停期间不会占用 cpu，但线程相当于闲置，无法进行其他处理。故单线程下，阻塞方法之间会相互影响，几乎不能正常工作，需要多线程支持，因而服务器程序演变历史出现了“一线程一连接”版本以及优化的“多连接线程池”版本。
+
+我们在本小节会分别编写阻塞模式下单线程版本（无法正常工作）、一线程一连接版本和多连接线程池版本下的简单服务器代码。由于是 nio 相关学习笔记，本部分将不再使用传统网络编程的 ServerSocket 和 Socket 来测试阻塞模式，而是直接使用 nio 提供的 ServerSocketChannel 和 SocketChannel 来测试阻塞模式，但实际上由于都是阻塞模式，二者的样板代码差别不大。
+
+### 单线程版本
+
+单线程版本的代码如下所示，其无法正常工作：
+
+```java
+// 单线程版本：阻塞模式下，accept 和 read 互相影响无法正常工作
+public class Server {
+    public static void main(String[] args) throws IOException {
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+
+        List<SocketChannel> socketChannels = new ArrayList<>();
+
+        // 阻塞 IO 下的单线程模型，大致会按照下述 4 个步骤往复循环，连接建立和各个数据读取的互相影响，无法正常工作
+        while (true) {
+            // 步骤 1：第 1 次准备接受连接，accept 会阻塞住知道第一个客户端连接出现
+            // 步骤 3：第 2 次进入，阻塞住直到新连接出现，阻塞期间第一个连接有数据来了也无法即时处理
+            // 只有来了一个新连接结束 accept 阻塞并运行后续代码才能继续处理，添加新连接到集合后会有两个连接
+            SocketChannel socketChannel = serverSocketChannel.accept();
+            // 添加到连接列表
+            socketChannels.add(socketChannel);
+
+            // 步骤 2：遍历连接列表读取各个连接的数据，只有一个连接，会阻塞住直到收到第一个连接的数据准备完毕
+            // 阻塞期间即时有其他连接来了，当前线程也无法即时处理，必须等到数据准备完毕进入下次循环才能处理
+            // 步骤 4：遍历连接集合，有两个连接
+            // 先取出第一个元素读取数据，若没有数据会阻塞住直到第一个连接数据准备完毕，
+            // 阻塞期间无法即时处理新连接请求，也无法处理其他连接上的数据准备完毕请求
+            // 第一个连接数据读取处理完毕后，继续拿到第二个连接，会阻塞住知道第二个连接接受到数据
+            // 在阻塞期间同样无法处理新连接请求和第一个连接接受到的数据完毕请求
+            for (SocketChannel channel : socketChannels) {
+                channel.read(byteBuffer);
+                byteBuffer.flip(); // 切换到读模式
+                System.out.println(Charset.defaultCharset().decode(byteBuffer));
+                byteBuffer.clear(); // 切换回写模式
+            }
+        }
+    }
+}
+
+// 客户端代码
+public class Client {
+    // 阻塞模式下，单线程版本无法正常工作，因此客户端只是简单发送字符串数据
+    public static void main(String[] args) throws IOException {
+        SocketChannel socketChannel = SocketChannel.open();
+        socketChannel.connect(new InetSocketAddress(8080));
+        socketChannel.write(Charset.defaultCharset().encode("hello nio!"));
+        System.in.read();
+    }
+}
+```
+
+如果确定只有一个客户端连接，可以取消 accept 外层的循环，并在主线程使用一个循环去处理这个唯一客户端的数据读写，就可以正常工作，其示例代码如下：
+
+```java
+// 单线程单连接版本：可以正常工作并处理一个 Client，
+public class Server {
+    public static void main(String[] args) throws IOException {
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+
+        // accept 会阻塞住直到第一个 client 连接
+        SocketChannel socketChannel = serverSocketChannel.accept();
+
+        while (!Thread.interrupted()) {
+            // 读取数据到缓存，会阻塞住直到有数据可读
+            socketChannel.read(byteBuffer);
+            // 读取数据并打印
+            System.out.println(DebugUtil.bytesToString(byteBuffer));
+        }
+    }
+}
+
+// 单线程版本：客户端
+public class Client {
+    // 单线程单连接模式，Server 只需处理一个 Client，可以正常工作
+    public static void main(String[] args) throws IOException {
+        SocketChannel socketChannel = SocketChannel.open();
+        socketChannel.connect(new InetSocketAddress(8080));
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            // 从标准流读取数据，实际上 scanner.nextLine() 也是一种阻塞 IO
+            String input = scanner.nextLine();
+            // 编码后发送到服务端
+            socketChannel.write(Charset.defaultCharset().encode(input));
+        }
+    }
+}
+```
+
+### 一连接一线程版本
+
+单线程版本的代码中，由于 accept 和 read 互相影响无法正常工作，但在后面的只有单个客户端连接的代码中，使用主线程循环只处理单个连接可以正常工作，基于此我们很容易就想到一个最简单的解决方案：对每个连接到服务器的连接，额外开启一个线程去处理读写，这样就避免了主线程在读写数据上的阻塞，让主线程继续运行并阻塞到 accept 处使得可以正常接受其他客户端连接，从而我们产生了“一连接一线程”版本的服务器处理代码。
+
+```java
+// 一连接一线程服务端
+public class Server {
+    public static void main(String[] args) throws IOException {
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+
+        while (!Thread.interrupted()) {
+            SocketChannel socketChannel = serverSocketChannel.accept();
+            // 开启一个线程处理新连接上的数据读写，主线程在创建线程后即可继续运行，不会被数据处理阻塞
+            new Thread(new ConnectionHandler(socketChannel)).start();
+        }
+    }
+
+    static class ConnectionHandler implements Runnable {
+
+        private SocketChannel socketChannel;
+
+        private String address;
+
+        private final ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+
+        public ConnectionHandler(SocketChannel socketChannel) {
+            try {
+                this.socketChannel = socketChannel;
+                this.address = socketChannel.getRemoteAddress().toString();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!Thread.currentThread().isInterrupted()) {//主线程死循环等待新连接到来
+                    // 数据读取，同时处理正常关闭连接
+                    // 对当前线程，会一直阻塞知道 Client 有数据发送过来
+                    if (socketChannel.read(byteBuffer) == EOF) {
+                        break;
+                    }
+
+                    String data = DebugUtil.bytesToString(byteBuffer);
+                    String out = String.format("received message from %s at %s : %s\n",
+                        address, DebugUtil.time(), data);
+                    System.out.print(out);
+                    // 移除前后空格后将同样的内容响应到客户端
+                    socketChannel.write(Charset.defaultCharset().encode(data.trim()));
+                }
+            } catch (IOException e) {
+                // 客户端强制关闭连接会触发 IO 异常
+                try {
+                    System.out.printf("%s 强制关闭了连接\n", address);
+                    socketChannel.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
+
+同时为了测试多个客户端连接到服务端，还编写了客户端的多线程版本，每个客户端都可以从控制台读取用户输入并发送到 Server，示例代码如下：
+
+```java
+public class Client {
+    public static void main(String[] args) {
+        batchStart(3);
+    }
+
+    public static void batchStart(int batchSize) {
+        IntStream.range(0, batchSize)
+            .mapToObj(idx -> new SimpleEntry<>(idx, new Thread(Client::startClient)))
+            .peek(entry -> entry.getValue().setName("th" + entry.getKey()))
+            .forEach(entry -> entry.getValue().start());
+    }
+
+    public static void startClient() {
+        try {
+            ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+            SocketChannel socketChannel = SocketChannel.open();
+            socketChannel.connect(new InetSocketAddress(8080));
+            String address = socketChannel.getLocalAddress().toString();
+            String threadName = Thread.currentThread().getName();
+            Scanner scanner = new Scanner(System.in);
+            while (true) {
+                // 从标准流读取数据，实际上 scanner.nextLine() 也是一种阻塞 IO
+                String input = scanner.nextLine();
+
+                if (input.equals("exit")) {
+                    break;
+                }
+
+                // 编码后发送到服务端
+                socketChannel.write(Charset.defaultCharset().encode(input));
+
+                // 获取服务端的响应，也是阻塞式 IO，会阻塞住直到收到服务端的数据
+                socketChannel.read(byteBuffer);
+
+                // 打印响应内容
+                byteBuffer.flip();
+                String resp = Charset.defaultCharset().decode(byteBuffer).toString();
+                System.out.printf("%s(%s) get res from server : %s\n", address, threadName, resp);
+                byteBuffer.clear();
+            }
+
+            socketChannel.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+### 线程池版本
+
+对于“一连接一线程”版本代码，若客户端连接数很大，服务端对应的需要创建大量的线程，将导致大量的线程资源创建和频繁的上下文切换，为了解决该问题进一步产生了线程池版本的服务器。线程池版本服务器不再每次都新建一个线程处理客户端连接，而是提前根据需要创建好线程池并设置参数，当用户连接到来时，会作为一个任务提交到池子中进行处理。
+
+线程池版本的代码基本没有什么大的变化，只是把原有创建新线程的地方改为向线程池提交任务，其他代码不变：
+
+```java
+public class Server {
+    public static void main(String[] args) throws IOException {
+        // 创建线程池，开启 5 个线程处理客户端连接
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+
+        while (!Thread.interrupted()) {
+            SocketChannel socketChannel = serverSocketChannel.accept();
+            // 接收到创建连接的请求后，创建任务并提交到线程池
+            executorService.submit(new ConnectionHandler(socketChannel));
+        }
+    }
+
+    static class ConnectionHandler implements Runnable {
+
+       // 处理程序不变，此处省略
+
+    }
+}
+```
+
+为了更方便的验证线程池版本服务器的问题，我们修改下 Client 代码，将其从原有的从控制台接受输入并发送到 Server 变为自动生成一个三位数字的字符串并发送到数据库，每个客户端线程发送 10 次后结束线程，同时在数据发送前我们打印一下表示准备发送数据，具体代码如下：
+
+```java
+public class Client {
+    public static void main(String[] args) {
+        batchStart(6);
+    }
+
+    private static final Random random = new Random();
+
+    public static void batchStart(int batchSize) {
+        IntStream.range(0, batchSize)
+            .mapToObj(idx -> new SimpleEntry<>(idx, new Thread(Client::startClient)))
+            .peek(entry -> entry.getValue().setName("th" + entry.getKey()))
+            .forEach(entry -> entry.getValue().start());
+    }
+
+    public static void startClient() {
+        try {
+            int count = 0;
+            ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+            SocketChannel socketChannel = SocketChannel.open();
+            socketChannel.connect(new InetSocketAddress(8080));
+            String address = socketChannel.getLocalAddress().toString();
+            String threadName = Thread.currentThread().getName();
+            while (count < 10) {
+                Thread.sleep(1000L);
+                // 从标准流读取数据，实际上 scanner.nextLine() 也是一种阻塞 IO
+                String input = String.valueOf((random.nextInt() >>> 1) % 1000);
+                ++count;
+
+                // 编码后发送到服务端
+                System.out.printf("%s(%s) will send data to server : %s\n", address, threadName, input);
+                socketChannel.write(Charset.defaultCharset().encode(input));
+
+                // 获取服务端的响应，也是阻塞式 IO，会阻塞住直到收到服务端的数据
+                socketChannel.read(byteBuffer);
+
+                // 打印响应内容
+                byteBuffer.flip();
+                String resp = Charset.defaultCharset().decode(byteBuffer).toString();
+                System.out.printf("%s(%s) get res from server : %s\n", address, threadName, resp);
+                byteBuffer.clear();
+            }
+
+            socketChannel.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+我们在服务器中设置的线程池大小为 5，在客户端中启动了 6 个客户端连接到服务器并不断发送 10 个字符串到服务器，我们通过观察 Client 的控制台输出可以看到，6 个客户端分别发送数据，其中 5 个客户端会率先得到响应，之后的循环响应就一直是这 5 个客户端的响应，只有至少其中一个客户端结束并关闭连接后，最后一个客户端的数据才会得到处理。，观察 Server 的控制台我们同样可以得到类似的结果。
+
+通过该例子，我们可以看到线程池版本服务器本质上还是一连接一线程的，当客户端连接数大于服务器线程数时，必然会有客户端得不到处理而一直阻塞住。第一部分在讲解线程池版本的服务器设计时曾提到过其仅适用于短连接，从这个例子我们就可以很容易看出原因，如果客户端维护为长连接，由于服务端是阻塞 IO，在客户端连接没有断开期间，服务端需要占用线程池的一个线程处理该长连接，如果客户端未发送数据则会在 read 处阻塞住，无法处理其他内容，直到客户端释放连接服务端对应线程结束才可以继续分配给其他连接处理，因此线程池版本的服务器最多只能并发处理最大线程数数量的客户端连接。对于当前例子，我们可以在客户端将连接改为短连接模式，在每次发送数据前建立连接，在发送完毕后释放连接，下次需要发送数据则继续新建连接，以达到能并发处理更多的连接，但频繁地创建连接会损耗一定性能，下面为示例代码：
+
+```java
+// 由于 Client 的其他内容不变，此处仅拷贝 startClient 函数的内容
+public static void startClient() {
+    try {
+        int count = 0;
+        ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+
+        String threadName = Thread.currentThread().getName();
+        while (count < 10) {
+            Thread.sleep(1000L);
+            // 从标准流读取数据，实际上 scanner.nextLine() 也是一种阻塞 IO
+            String input = String.valueOf((random.nextInt() >>> 1) % 1000);
+            ++count;
+
+            // 修改为短连接，每次需要发送数据前才创建连接
+            SocketChannel socketChannel = SocketChannel.open();
+            socketChannel.connect(new InetSocketAddress(8080));
+            String address = socketChannel.getLocalAddress().toString();
+
+            // 编码后发送到服务端
+            System.out.printf("%s(%s) will send data to server : %s\n", address, threadName, input);
+            socketChannel.write(Charset.defaultCharset().encode(input));
+
+            // 获取服务端的响应，也是阻塞式 IO，会阻塞住直到收到服务端的数据
+            socketChannel.read(byteBuffer);
+
+            // 获取响应后立马关闭连接
+            socketChannel.close();
+
+            // 打印响应内容
+            byteBuffer.flip();
+            String resp = Charset.defaultCharset().decode(byteBuffer).toString();
+            System.out.printf("%s(%s) get res from server : %s\n", address, threadName, resp);
+            byteBuffer.clear();
+        }
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+```
+
+## 非阻塞模式
+
+NIO 引入了非阻塞模式，在非阻塞模式下，相关方法都会不会让线程暂停，而是会立即返回，通过返回值的不同来标记是否成功，主要体现为下述内容：
+
+- 在执行到 `ServerSocketChannel.accept` 时，若没有客户端连接建立，会直接返回 null 而不会阻塞住，之后可以继续运行后续代码
+- 在执行到 `SocketChannel.read`，如果通道中没有数据可读时，会直接返回 0 而不会阻塞住（实际上是返回本次读取的字节数），之后当前线程可以继续乡下执行，可以继续轮询 `SocketChannel.read` 或是去执行 `ServerSocketChannel.accept`
+- 写数据时，线程只是等待数据写入 Channel 即可，无需等 Channel 通过网络把数据发送出去
+
+非阻塞模式的服务器代码如下所示，客户端代码则仍然采用前面多线程自动发送 10 个字符串的版本进行测试：
+
+```java
+public class Server {
+    public static void main(String[] args) throws IOException {
+        // 准备复用缓存
+        ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+
+        // 打开 ServerSocketChannel
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        // 绑定端口
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+        // 将当前 ServerSocketChannel 设置为非阻塞模式，这样 accept 方法变为非阻塞模式
+        serverSocketChannel.configureBlocking(false);
+
+        // 由于是非阻塞，需要服务端自己把连接维护起来并轮询，故准备一个集合用于存储连接 SocketChannel
+        List<SocketChannel> socketChannelList = new ArrayList<>();
+
+        // 统计轮询次数
+        int roundCount = 0;
+        int processCount = 0;
+
+        // 死循环轮询
+        while (!Thread.interrupted()) {
+            //System.out.println("round " + (++count));
+            // accept 方法不再阻塞，如果没有新连接建立，则本次轮询返回 null
+            SocketChannel socketChannel = serverSocketChannel.accept();
+
+            if (socketChannel != null) {
+                // 如果不是 null，表示本次有新连接建立，添加到列表
+                socketChannelList.add(socketChannel);
+                // 同时将当前 socketChannel 设置为非阻塞模式，这样后续的 read/write 都变为非阻塞模式
+                socketChannel.configureBlocking(false);
+            }
+
+            // 遍历所有可用连接，处理数据读写，由于需要在检测到连接关闭时移除元素，必须采用迭代器遍历
+            Iterator<SocketChannel> iterator = socketChannelList.iterator();
+            while (iterator.hasNext()) {
+                try {
+                    SocketChannel channel = iterator.next();
+
+                    // 同样的 read 方法不会阻塞，其读取数据到 byteBuffer 中并返回本次读取的字节数
+                    int readBytes = channel.read(byteBuffer);
+
+                    // 当前 socketChannel 没有数据，跳过
+                    if (readBytes == 0) {
+                        continue;
+                    }
+
+                    if (readBytes == EOF) {
+                        // 客户端正常关闭，移除当前连接
+                        iterator.remove();
+                        continue;
+                    }
+
+                    // 若当前 socketChannel 本次循环有数据，则进行处理
+                    process(channel, byteBuffer);
+                    ++processCount;
+                    System.out.println("processCount " + processCount);
+
+                } catch (IOException e) {
+                    // 客户端异常关闭，移动当前连接
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    private static void process(SocketChannel socketChannel, ByteBuffer byteBuffer) {
+        try {
+            String address = socketChannel.getRemoteAddress().toString();
+            String data = DebugUtil.bytesToString(byteBuffer);
+            String out = String.format("received message from %s at %s : %s\n",
+                address, DebugUtil.time(), data);
+            System.out.print(out);
+            // 移除前后空格后将同样的内容响应到客户端
+            socketChannel.write(Charset.defaultCharset().encode(data.trim()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+我们分别启动 Server 端和 Client 端，会发现 CPU 明显飙高，如果注释掉打印 roundCount 的代码，可以发现其在不断地循环打印。据此我们可以知道，采用非阻塞式的 IO，服务器的主线程不会阻塞，且会不断轮询 accept 请求和 read 请求，即使没有客户端连接发送数据，服务器也会不断轮询，造成严重的计算资源浪费。
+
+## Selector 与 I/O 多路复用
+
+我们可以看到，阻塞 IO 模型和非阻塞 IO 模型有明显的缺陷，阻塞 IO 依赖多线程数量，而非阻塞 IO 需要服务器不停地轮询，因而操作系统进一步演化出了 IO 多路复用技术。在多路复用下，单线程可以配合 Selector 完成对多个 Channel 的连接建立、可读、可写等事件的监控。
+
+Java 新引入的 Selector 可以看成是一个监听器，ServerSocketChannel 和各个连接的 SocketChannel 都可以注册到该监听器上，使得 Selector 可以监听各个 Channel 的事件，引入 Selector 后服务端的处理代码大致如下：
+
+- 使用 `Selector.open()` 创建一个 Selector 对象作为监听器，也可以看成是一个管理多个通道通道的管理器
+- 调用通道的 `register` 方法将通道（ServerSocketChannel 或 SocketChannel）注册到 Selector，让 Selector 可以监听通道上的事件
+- 编写循环处理事件，首先是编写一行 `selector.select()`，该代码会一直阻塞住直到其中一个已注册的通道有事件发生，在后续代码可以获取对应的事件和通道并进行处理
+
+对应上述步骤，实现的基于 IO 多路复用的 Server 端代码大致如下，客户端仍然可采用多线程版本的客户端代码进行连接测试：
+
+```java
+public class Server {
+    public static void main(String[] args) throws IOException {
+        // 创建缓存
+        ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+
+        // 创建 Selector 对象
+        Selector selector = Selector.open();
+
+        // 创建 ServerSocketChannel
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        // 绑定端口
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+        // 设置为非阻塞模式
+        serverSocketChannel.configureBlocking(false);
+
+        // 将 ServerSocketChannel 注册到 selector 上，并监听 ACCEPT 事件
+        SelectionKey selectionKey = serverSocketChannel.register(selector, 0, null);
+        selectionKey.interestOps(SelectionKey.OP_ACCEPT);
+
+        while (true) {
+
+            // select() 方法会阻塞住直到事件发生，其返回值表示有多少 channel 发生了事件
+            int count = selector.select();
+
+            // 理论上 count 必定大于 0，因为如果没有通道发生时间，则 select 会阻塞住
+            assert count > 0;
+
+            // 获取所有当前未处理事件，并使用迭代器遍历
+            Set<SelectionKey> selectionKeys = selector.selectedKeys();
+            Iterator<SelectionKey> iterator = selectionKeys.iterator();
+            while (iterator.hasNext()) {
+                // 取出当前时间
+                SelectionKey key = iterator.next();
+                iterator.remove();
+
+                // 是建立连接事件，进行建立连接处理
+                if (key.isAcceptable()) {
+                    // 获取发生 accept 事件的通道，一般是 ServerSocketChannel
+                    ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
+                    // 有客户端建立连接，审使用 accept 接受连接
+                    SocketChannel sc = ssc.accept();
+                    // 将当前建立的连接设置为非阻塞模式
+                    sc.configureBlocking(false);
+                    // 同时将该连接的数据读事件注册到 selector 以便能数据管理
+                    sc.register(selector, SelectionKey.OP_READ, null);
+
+                    // accept 事件处理完毕
+                    continue;
+                }
+
+                // 是可读事件
+                if (key.isReadable()) {
+                    // 获取发生数据可读事件的通道，一般是 SocketChannel
+                    SocketChannel channel = (SocketChannel) key.channel();
+
+                    // 读取数据
+                    if (channel.read(byteBuffer) == -1) {
+                        // 如果返回 -1，表示客户端关闭连接，取消时间，关闭当前通道
+                        key.cancel();
+                        channel.close();
+                        continue;
+                    }
+
+                    // 打印读取到的数据信息，并回写数据
+                    process(channel, byteBuffer);
+                }
+            }
+        }
+    }
+
+    private static void process(SocketChannel socketChannel, ByteBuffer byteBuffer) {
+        try {
+            String address = socketChannel.getRemoteAddress().toString();
+            String data = DebugUtil.bytesToString(byteBuffer);
+            String out = String.format("received message from %s at %s : %s\n",
+                address, DebugUtil.time(), data);
+            System.out.print(out);
+            // 移除前后空格后将同样的内容响应到客户端
+            socketChannel.write(Charset.defaultCharset().encode(data.trim()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+在上述 IO 多路复用版本的例子中，主要有三块代码需要重点关注，分别是：
+
+- 将通道注册到 selector，同时绑定需要监听的事件
+- `selector.select()` 方法的具备阻塞
+- 获取待处理事件并逐一进行处理
+
+最后需要注意的是多路复用仅针对网络 IO、普通文件 IO 没法利用多路复用。
+
+### 注册通道 & 事件绑定
+
+在 IO 多路复用中，要使 Channel 能被 Selector 纳入管理，需要调用通道的 register 方法将 Channel 注册到 selector，同时需要告知 selector 当前 channel 需要监听的具体事件，register 方法会返回一个 SelectionKey 对象，可以继续对当前通道的相关注册信息进行配置。
+
+监听事件使用一个 int 行整数表示，不同的实践在不同的二进位为 1，其他二进位为 0，不同的事件可以使用或运算进行组合。可以使用 SelectionKey 中定义的常量访问可用事件，包括：
+
+- connect：客户端连接成功时触发
+- accept：服务器端成功接受连接时触发
+- read：数据可读入时触发，有因为接收能力弱，数据暂不能读入的情况；此外客户端正常断开和异常断开都会产生一个 read 事件，其中正常断开是向服务器写入 EOF，异常断开则只是触发一个 read 事件，不写入相关数据
+- write：数据可写出时触发，有因为发送能力弱，数据暂不能写出的情况
+
+要告知 selector 当前通道关心的事件类型，主要有两种告知方式：
+
+- 直接在调用 `channel.register(Selector sel, int ops, Object att)` 注册通道时设置第二个参数
+- 通过使用 register 方法返回的 selectionKey 对象进行配置，调用 `selectionKey.interestOps(int);` 设置关心的事件
+
+当 channel 上发生了关心的事件后，则事件必须被处理，不能什么都不做，否则下次该事件仍会触发，这是因为 nio 底层使用的是水平触发。在处理事件时，还需要手动将事件从迭代器移除，因为 select 在事件发生后，就会将相关的 key 放入 selectedKeys 集合，但不会在处理完后从 selectedKeys 集合中移除，需要我们自己编码删除。
+
+### selector.select() 方法的阻塞性
+
+当将通道注册到 selector 后，则可以使用 `selector.select()` 方法监听是否有事件发生，该方法在没有事件发生时会阻塞住，直到至少一个通道发生了关心的事件才会返回，方法的返回值代表有多少 channel 发生了事件，之后就可以从 selector 上获取所有待处理事件进行处理。
+
+select() 方法主要有下列三种形式，它们返回值都一样，但参数不同：
+
+- `selector.select()`：阻塞直到绑定事件发生
+- `selector.select(long timeout)`：阻塞直到绑定事件发生，但最多阻塞 timeout 毫秒，超时后也会直接返回 0
+- `selector.selectNow()`：不会阻塞直接返回，没有事件发生返回 0，有事件发生则返回发生时间的 channel 数量
+
+我们已经知道 `selector.select()` 会阻塞，但若有下列情况则会继续执行：
+
+- 有通道发生关心的事件时：
+  - 客户端发起连接请求，会触发 accept 事件
+  - 客户端发送数据过来，客户端正常、异常关闭时，都会触发 read 事件，另外如果发送的数据大于 buffer 缓冲区，会触发多次读取事件
+  - channel 可写，会触发 write 事件
+  - 在 linux 下 nio bug 发生时
+- 调用 selector.wakeup()
+- 调用 selector.close()
+- selector 所在线程 interrupt
+
+### Selector 内部数据结构
+
+**SelectionKey**
+
+SelectionKey 是一个抽象类，表示 selectableChannel 在 Selector 中注册的标识。每个 Channel 向 Selector 注册时，都将会创建一个 selectionKey 将 Channel 与 Selector 建立关系，并维护 channel 事件。
+
+可以通过 cancel 方法取消 Channel 与 Selector 的关联，取消的键不会立即从 selector 中移除，而是添加到 cancelledKeys 中，在下一次 select 操作时移除它，所以在调用某个 key 时，需要使用 isValid 进行校验。
+
+**SelectionKey 集合**
+
+Selector 内部维护了两个 `Set<SelectionKey>`，我们知道每次 register 都会返回一个 SelectorKey（包含了对应通道、关心的事件的信息），故第一个 `Set<SelectionKey>` 就是维护已注册通道的 SelectionKey 集合。而第二个 `Set<SelectionKey>` 是一个已发生的事件集合，每次调用 selectedKeys，所有在第一个 `Set<SelectionKey>` 上关联的通道发生的已关注且未处理的事件都会以 SelectionKey 的形式追加到第二个 `Set<SelectionKey>`，因此所有发生的事件必须被处理，且每次在事件处理后必须手动移除。
+
+- 如果只处理事件而不从第二个 `Set<SelectionKey>` 移除事件，则 `Set<SelectionKey>` 仍然会保留对应事件，下次遍历会进行处理，但已经处理过的事件再次处理会导致异常，且一直不移除会导致一直循环处理
+- 如果只是遍历并从第二个 `Set<SelectionKey>` 中移除事件，不处理对应事件，则下次获取事件集合时，其仍然会从第一个 `Set<SelectionKey>` 集合中找到所有待处理的事件并追加到第二个 `Set<SelectionKey>` 中，事件仍然会被循环遍历到。最经典的情况就是客户端强制关闭连接，服务端会收到一个 read 事件，此时服务端将无法正常处理该 read 事件，需要调用 `key.cancel` 取消当前通道和 selector 的绑定
+
+## 处理消息边界
+
+在网络上传输数据，不可避免地会出现“半包”和“粘包”问题，对于该问题，一般有下列三种解决思路：
+
+- 一种思路是固定消息长度，数据包大小一样，服务器按预定长度读取，缺点是浪费带宽
+- 另一种思路是按分隔符拆分，缺点是效率低，需要逐字符判断
+- TLV 格式，即 Type 类型、Length 长度、Value 数据，类型和长度已知的情况下，就可以方便获取消息大小，分配合适的 buffer，缺点是 buffer 需要提前分配，如果内容过大，则影响 server 吞吐量
+  - Http 1.1 是 TLV 格式
+  - Http 2.0 是 LTV 格式
+
+对于第二种，我们在前面讲解 ByteBuffer 时练习过粘包半包的解析，现在只要引入进行解析即可，服务端代码如下所示，重点关注如何应用 split 方法：
+
+```java
+public class Server {
+    public static void main(String[] args) throws IOException {
+        // 创建 Selector 对象
+        Selector selector = Selector.open();
+        // 创建 ServerSocketChannel
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        // 绑定端口
+        serverSocketChannel.bind(new InetSocketAddress(8080));
+        // 设置为非阻塞模式
+        serverSocketChannel.configureBlocking(false);
+        // 将 ServerSocketChannel 注册到 selector 上，并监听 ACCEPT 事件
+        SelectionKey selectionKey = serverSocketChannel.register(selector, 0, null);
+        selectionKey.interestOps(SelectionKey.OP_ACCEPT);
+
+        while (true) {
+            // select() 方法会阻塞住直到事件发生，其返回值表示有多少 channel 发生了事件
+            int count = selector.select();
+            // 理论上 count 必定大于 0，因为如果没有通道发生时间，则 select 会阻塞住
+            assert count > 0;
+
+            // 获取所有当前未处理事件，并使用迭代器遍历
+            Set<SelectionKey> selectionKeys = selector.selectedKeys();
+            Iterator<SelectionKey> iterator = selectionKeys.iterator();
+            while (iterator.hasNext()) {
+                // 取出当前事件
+                SelectionKey key = iterator.next();
+                iterator.remove();
+                // 是建立连接事件，进行建立连接处理
+                if (key.isAcceptable()) {
+                    // 获取发生 accept 事件的通道，一般是 ServerSocketChannel
+                    ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
+                    // 有客户端建立连接，审使用 accept 接受连接
+                    SocketChannel sc = ssc.accept();
+                    // 将当前建立的连接设置为非阻塞模式
+                    sc.configureBlocking(false);
+                    // 同时将该连接的数据读事件注册到 selector 以便能数据管理
+                    sc.register(selector, SelectionKey.OP_READ, ByteBuffer.allocate(4));
+
+                    // accept 事件处理完毕
+                    continue;
+                }
+
+                // 是可读事件
+                if (key.isReadable()) {
+                    // 获取发生数据可读事件的通道，一般是 SocketChannel
+                    SocketChannel channel = (SocketChannel) key.channel();
+
+                    // 拿出附件，是一个 ByteBuffer
+                    ByteBuffer byteBuffer = (ByteBuffer) key.attachment();
+
+                    // 读取数据
+                    if (channel.read(byteBuffer) == -1) {
+                        // 如果返回 -1，表示客户端关闭连接，取消时间，关闭当前通道
+                        key.cancel();
+                        channel.close();
+                        continue;
+                    }
+
+                    // 使用 split 读取数据
+                    split(channel, byteBuffer);
+
+                    // compact 后为写模式，但 position == limit 表示缓存已满且未检测到分隔符，需要扩容
+                    if (byteBuffer.position() == byteBuffer.limit()) {
+                        ByteBuffer newByteBuffer = ByteBuffer.allocate(byteBuffer.capacity() * 2);
+                        byteBuffer.flip();
+                        // 将旧 buffer 的内容拷贝到新 buffer
+                        newByteBuffer.put(byteBuffer);
+                        // 设置为附件
+                        key.attach(newByteBuffer);
+                    }
+
+                }
+            }
+        }
+    }
+
+    private static void split(SocketChannel socketChannel, ByteBuffer source) {
+        // 切换为读模式，进行读取操作
+        source.flip();
+
+        // 获取可读的 limit
+        int limit = source.limit();
+
+        for (int i = 0; i < limit; i++) {
+            // 检测到分割符，则表示当前读模式的 [position, i] 为完整字符串，可以读取并打印
+            // 读取完毕后，将 position 变为 i + 1
+            if (source.get(i) == '\n') {
+                // 我们同样声明一个新的 ByteBuffer 存储这个完整的字符串
+                int len = i - source.position() + 1;
+                ByteBuffer target = ByteBuffer.allocate(len);
+                // 从 source 中读取并写入到 target 中，由于只能读取到分割符处，因此要设置 source 的 limit
+                source.limit(i + 1);
+                target.put(source);
+                // 打印读取到的 target
+                process(socketChannel, target);
+
+                // 读取完毕后，要恢复原有 limit
+                source.limit(limit);
+            }
+        }
+
+        // 切换回写模式继续后续写入，注意要使用 compact 因为缓冲区可能还存在不完整的未读取的字节
+        source.compact();
+    }
+
+    private static void process(SocketChannel socketChannel, ByteBuffer byteBuffer) {
+        try {
+            String address = socketChannel.getRemoteAddress().toString();
+            String data = DebugUtil.bytesToString(byteBuffer).trim();
+            String out = String.format("received message from %s at %s : %s\n",
+                address, DebugUtil.time(), data);
+            System.out.print(out);
+            // 移除前后空格后将同样的内容响应到客户端
+            socketChannel.write(Charset.defaultCharset().encode(data.trim()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+对于上述代码，有下述需要注意的要点：
+
+- 每个 channel 都需要记录可能被切分的消息，因为 ByteBuffer 不能被多个 channel 共同使用，因此需要为每个 channel 维护一个独立的 ByteBuffer
+- ByteBuffer 不能太大，比如一个 ByteBuffer 1Mb 的话，要支持百万连接就要 1Tb 内存，因此需要设计大小可变的 ByteBuffer
+- 一种思路是首先分配一个较小的 buffer，例如 4k，如果发现数据不够，再分配 8k 的 buffer，将 4k buffer 内容拷贝至 8k buffer，优点是消息连续容易处理，缺点是数据拷贝耗费性能，参考实现 http://tutorials.jenkov.com/java-performance/resizable-array.html
+- 另一种思路是用多个数组组成 buffer，一个数组不够，把多出来的内容写入新的数组，与前面的区别是消息存储不连续解析复杂，优点是避免了拷贝引起的性能损耗
+
+## 多线程版本优化
+
+## UDP
+
 # 4 参考文献
 
 - [黑马程序员 Netty 全套教程](https://www.bilibili.com/video/BV1py4y1E7oA)
