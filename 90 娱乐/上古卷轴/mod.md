@@ -120,8 +120,9 @@
 - [4016 More Informative Console](https://www.nexusmods.com/skyrimspecialedition/mods/19250)：选择对象后，展示详细的控制台信息，可按 tab 修改模式
 - [4017 Nether's Follower Framework](https://www.nexusmods.com/skyrimspecialedition/mods/55653)：多随从管理
 - [4018 Vampire Sunlight Silence](https://www.nexusmods.com/skyrimspecialedition/mods/740)：
-
-- [死灵法优化 ](https://www.nexusmods.com/skyrimspecialedition/mods/43500)
+- [4019 Vampire regeneration under sunlight](https://www.nexusmods.com/skyrimspecialedition/mods/8447)：吸血鬼在阳光下可以回复
+- 4020 去除尸体鬼叫：群里下载的 mod，据说是烽火包，N 网无
+- [4021 死灵法优化](https://www.nexusmods.com/skyrimspecialedition/mods/43500)
 
 # 类别 5：机制修改
 
