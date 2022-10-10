@@ -2331,9 +2331,9 @@ public class UdpClient {
 }
 ```
 
-## 补充内容
+## 4.8 补充内容
 
-### stream & channel
+### 4.8.1 stream & channel
 
 stream 和 channel 主要有下述区别：
 
@@ -2341,9 +2341,9 @@ stream 和 channel 主要有下述区别：
 - stream 仅支持阻塞 API，channel 同时支持阻塞、非阻塞 API，网络 channel 可配合 selector 实现多路复用
 - 二者均为全双工，即读写可以同时进行
 
-### 零拷贝问题
+### 4.8.2 零拷贝问题
 
-#### 传统 IO 拷贝问题
+#### 4.8.2.1 传统 IO 拷贝问题
 
 以下列代码为例，采用传统 IO 将一个文件的数据通过 Socket 进行传输：
 
@@ -2372,7 +2372,7 @@ socket.getOutputStream().write(buf);
 - 用户态与内核态的切换发生了 3 次，这个操作比较重量级
 - 数据拷贝了共 4 次
 
-#### 通过 DirectByteBuffer 优化
+#### 4.8.2.2 通过 DirectByteBuffer 优化
 
 java nio 提供了两种 ByteBuffer 实现类，它们都可以使用 ByteBuffer 的静态方法进行分配：
 
@@ -2387,7 +2387,7 @@ DirectByteBuffer 是将一块堆外内存映射到 jvm 内存中来直接访问�
 引入 DirectByteBuffer 后，该块区域属于内核缓冲区，但同样可以在 Java 中直接引用，如下图所示，可以减少一次拷贝，但用户态与内核态的切换次数没有减少。
 // todo 补充引入 DirectByteBuffer 后的数据拷贝图
 
-#### 通过 transferFrom 和 transferTo 优化
+#### 4.8.2.3 通过 transferFrom 和 transferTo 优化
 
 **Linux 2.1 之后**
 
@@ -2419,7 +2419,7 @@ Java nio 提供了直接基于两个 channel 进行数据传输的方法，通�
 - 不利用 CPU 计算，减少 CPU 缓存伪共享
 - 零拷贝适合小文件传输
 
-### AIO
+### 4.8.3 AIO
 
 # 5 参考文献
 

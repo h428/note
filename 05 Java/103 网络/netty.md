@@ -99,3 +99,42 @@ public class NettyClient {
 - 序号 15 处，写入消息并清空缓冲区
 - 序号 16 处，消息会经过通道 handler 处理，这里是将 String => ByteBuf 发出
 - 数据经过网络传输，到达服务器端，服务器端 17 和 18 处的 handler 先后被触发，走完一个流程
+
+# 组件
+
+## EventLoop
+
+事件循环对象 EventLoop 本质上是一个单线程执行器，即一个 EventLoop 对应一个线程，同时其内部维护了一个 Selector 用于多路复用，其 run 方法可以不断处理 Channel 上 IO 事件。
+
+> 在 nio 笔记中我们自己基于 IO 多路复用实现了简单的多线程版本的服务器，该 EventLoop 对应的角色即为 WorkerEventLoop，主要用于处理 SocketChannel 上的读写事件。
+
+EventLoop 的继承关系比较复杂，主要包含两条继承线：
+
+- 一条线是继承自 j.u.c.ScheduledExecutorService，是一个线程池，因此包含了线程池中所有的方法，但实际上一个 EventLoop 仅维护一个线程，可向其提交多个任务
+- 另一条线是继承自 netty 自己的 OrderedEventExecutor，其提供了 `boolean inEventLoop(Thread thread)` 方法判断一个线程是否属于此 EventLoop，此外还提供了 parent 方法来看看自己属于哪个 EventLoopGroup
+
+时间循环组 EventLoopGroup 是一组 EventLoop，Channel 会调用 EventLoopGroup 的 register 方法来绑定其中一个 EventLoop，后续这个 Channel 上的 IO 事件都交由该 EventLoop 来处理（保证了 IO 事件处理时的线程安全）。该 EventLoopGroup 对应角色即为 WorkerEventLoop 数组，以一定策略选择 EventLoop 并将其和某个 Channel 绑定。
+
+同时其继承 netty 自己的 EventExecutorGroup，具备下述迭代器特性：
+
+- 实现了 Iterable 接口提供遍历 EventLoop 的能力
+- 另有 next 方法获取集合中下一个 EventLoop
+
+DefaultEventLoopGroup 简单测试代码：
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        // 创建包含两个 EventLoop 的 group，每个 EventLoop 会维护一个线程
+        DefaultEventLoopGroup group = new DefaultEventLoopGroup(2);
+        System.out.println(group.next());
+        System.out.println(group.next());
+        System.out.println(group.next()); // 第三个和第一个是同一个对象
+
+        // 也可以使用 for 循环遍历
+        for (EventExecutor executor : group) {
+            System.out.println(executor);
+        }
+    }
+}
+```
