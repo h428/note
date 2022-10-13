@@ -34,6 +34,8 @@ BISACXYELK-eyJsaWNlbnNlSWQiOiJCSVNBQ1hZRUxLIiwibGljZW5zZWVOYW1lIjoiQ2hpbmFOQiIsI
 - 额外配置下列个人习惯选项：
   - 启用 `JavaDoc` 下，Other 模块里的 do not wrap one line comment, preserve line feeds
   - 调整缩进宽度，其默认值为 2 2 4，调整为 4 4 8
+- 进行个人配置后可导出到文件，这样下次导入可直接导入个人文件，就不用再次调整个人配置了
+- 最后在 Action On Save 里启用保存后自动代码格式化
 
 ## 2.3 安装插件
 
