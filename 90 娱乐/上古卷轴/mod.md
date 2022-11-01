@@ -84,9 +84,8 @@
 - [2008 Perk Point Book](https://www.nexusmods.com/skyrimspecialedition/mods/2254)：阅读一次获得 1 技能点
 - [2009 Easy Lockpicking](https://www.nexusmods.com/skyrimspecialedition/mods/4070)：开锁更容易
 - [2010 Store Bodies in Scrolls](https://www.nexusmods.com/skyrimspecialedition/mods/15463)：使用卷轴保存尸体，卷轴找商人购买或者使用控制台
-- [2012 No Player Fall Damage](https://www.nexusmods.com/skyrimspecialedition/mods/5210)：无掉落伤害
-  成
 - [2011 Unlimited Summons](https://www.nexusmods.com/skyrimspecialedition/mods/1554)：修改 `Twin Souls` 使得拥有 1000 个召唤物而不只是两个
+- [2012 No Player Fall Damage](https://www.nexusmods.com/skyrimspecialedition/mods/5210)：无掉落伤害
 
 # 类别 3：任务对话
 
@@ -120,8 +119,10 @@
 - [4016 More Informative Console](https://www.nexusmods.com/skyrimspecialedition/mods/19250)：选择对象后，展示详细的控制台信息，可按 tab 修改模式
 - [4017 Nether's Follower Framework](https://www.nexusmods.com/skyrimspecialedition/mods/55653)：多随从管理
 - [4018 Vampire Sunlight Silence](https://www.nexusmods.com/skyrimspecialedition/mods/740)：
-
-- [死灵法优化 ](https://www.nexusmods.com/skyrimspecialedition/mods/43500)
+- [4019 Vampire regeneration under sunlight](https://www.nexusmods.com/skyrimspecialedition/mods/8447)：吸血鬼在阳光下可以回复
+- 4020 去除尸体鬼叫：群里下载的 mod，据说是烽火包，N 网无
+- [4021 Enhanced Reanimation](https://www.nexusmods.com/skyrimspecialedition/mods/43500)：死灵法优化
+- [4022 Dawnguard as a vampire](https://www.nexusmods.com/skyrimspecialedition/mods/18035)：作为吸血鬼的黎明守卫
 
 # 类别 5：机制修改
 
@@ -137,6 +138,8 @@
 - [6004 Enhanced Blood Textures](https://www.nexusmods.com/skyrimspecialedition/mods/2357)：血液纹理增强
 - [6005 Immersive College of Winterhold SE](https://www.nexusmods.com/skyrimspecialedition/mods/17004)：沉浸式冬堡学院，需自己手动汉化
 - [6006 Skyrim Immersive Creatures Special Edition](https://www.nexusmods.com/skyrimspecialedition/mods/12680)：沉浸式生物
+- [6007 Clean your Vampire - Dirt Removal](https://www.nexusmods.com/skyrimspecialedition/mods/11571)：吸血鬼去污
+- [6008 Underworld Awakening - Hybrid Vampire Eyes](https://www.nexusmods.com/skyrimspecialedition/mods/18038)：吸血鬼眼睛皮肤
 
 # 类别 7：实验室
 
