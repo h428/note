@@ -19,9 +19,9 @@ BISACXYELK-eyJsaWNlbnNlSWQiOiJCSVNBQ1hZRUxLIiwibGljZW5zZWVOYW1lIjoiQ2hpbmFOQiIsI
 
 ### 2021 系列
 
-- 特别注意，jetbrain 从 2021.3 开始需要登录，如果不想登录，可以使用 2021.2 及之前的版本
-- 打开 IDEA 2021.2.1，选择试用
-- 选择 `Help -> Edit Custom VM Options`，修改 `idea.vmoptions` 文件，加上一行 `-javaagent:D:\\all\\ide\\jet\\2021\\FineAgent.jar`，路径为破解文件路径
+- 特别注意，jetbrain 从 2021.2.3 开始必须要登录才能试用，如果不想登录，可以使用 2021.2.2 及之前的版本，故推荐使用 2021.2.2
+- 打开 IDEA 2021.2.2，选择试用
+- 选择 `Help -> Edit Custom VM Options`，其修改的是 `~\AppData\Roaming\JetBrains` 目录下对应 IDE 的 文件，加上一行 `-javaagent:D:\\all\\ide\\jet\\2021\\FineAgent.jar`，路径为破解文件路径
 - 再打开 "Help - Register"，填入下列 ActivationCode
 
 ```
