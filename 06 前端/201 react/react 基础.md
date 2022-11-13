@@ -2,24 +2,33 @@
 
 ## 概述
 
-- React 是用于构建用户界面的 JavaScript 库，其起源于 Facebook 的内部项目，用于架设 Instagram 并后续开源
-- 从 MVC 角度看，React 仅仅是视图层（V），也就是只负责视图的渲染
-- React 特点：
-  - 声明式：只需要描述 UI 看起来是什么样的，就像写 HTML 一样，由 React 负责渲染 UI 并在数据变化时自动更新
-  - 基于组件：组件时 React 最重要的内容，使用组件表示页面的各个内容，并进行复用
-  - 学习一次，随处使用：可以开发 Web 应用、React Native 等
+React 是用于构建用户界面的 JavaScript 库，其起源于 Facebook 的内部项目，用于架设 Instagram 并后续开源，可分别访问[英文官网](https://reactjs.org)和[中文官网](https://react.docschina.org/)了解详情。
+
+从前后端整体的 MVC 角度看，React 仅仅是视图层（V），也就是只负责视图的渲染。
+
+React 具有如下特点：
+
+- 声明式：只需要描述 UI 看起来是什么样的，就像写 HTML 一样，由 React 负责渲染 UI 并在数据变化时自动更新
+- 基于组件：组件时 React 最重要的内容，使用组件表示页面的各个内容，并进行复用
+- 学习一次，随处使用：可以 React Native 或其他框架开发 Web app 应用
+- 具备高校的 Diffing 算法
+
+React 高效的原因：
+
+- React 使用虚拟 DOM（Virtual DOM）, 不总是直接操作页面真实 DOM
+- React 实现了 DOM Diffing 算法，对 DOM 进行最小化页面重绘，即只有发生变化的 DOM 才会重绘
 
 ## hello, world
 
 ### html 单页面引入
 
-对于 html 页面，主要通过引入 js 文件的方式使用 react，涉及的包主要包括 react, react-dom 和 babel，其中 react 包是核心包，提供创建元素、组件等功能，react-dom 包提供 DOM 相关功能，babel 使得浏览器支持 ES6 和 JSX 语法。可以提前下载 js 文件并在 html 引入，也可以使用命令安装模块，然后在 node_modules 中找到相关 js 文件进行引入。
+对于 html 页面，主要通过引入 js 文件的方式使用 react，涉及的 js 文件包主要包括 react.js, react-dom.js 和 babel.js，其中 react.js 包是核心包，提供创建元素、组件等功能，react-dom 包提供 DOM 相关功能，babel 使得浏览器支持 ES6 和 JSX 语法。可以提前下载 js 文件并在 html 引入，也可以使用命令安装模块，然后在 node_modules 中找到相关 js 文件进行引入。
 
 安装上述三个模块的命令为：
 
 ```bash
-yarn init -y
-yarn add react react-dom @babel/standalone
+npm init -y
+npm i react react-dom @babel/standalone
 ```
 
 下载完毕后，在页面上引入 react 和 react-dom 两个 js 文件，使用全局 React 变量创建 React 元素，之后使用 ReactDOM 渲染创建的元素，完整的 demo 代码如下：
@@ -52,6 +61,8 @@ yarn add react react-dom @babel/standalone
   </body>
 </html>
 ```
+
+> 注意：大部分教程在将虚拟 DOM 渲染到页面时使用的是 `ReactDOM.render(element, root)` 这个方法，这是老版本的 React 推荐的写法，若使用的是 React 18+ 版本，推荐的写法是 `ReactDOM.createRoot(root).render(element)`
 
 ### Babel 作用
 
