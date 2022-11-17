@@ -148,3 +148,13 @@ sudo setfacl -R -m u:用户名:rwx /path/to/directory目标目录
 # 补充
 
 - 使用 scp 拷贝文件：`scp 本机文件 root@192.168.25.42:/xxx/`
+
+
+# 场景操作
+
+## sudo 用于使用编辑器远程开发无法保存 root 用户文件问题
+
+可以使用下列命令为用户添加对应文件夹的处理权，后面就可以保存
+```bash
+sudo setfacl -R -m -u:用户名:rwx /目标路径
+```
