@@ -1,8 +1,29 @@
-# numpy 快速入门
+# 概述
 
-## Python 环境安装
+NumPy 是 Python 中科学计算的基础包。它是一个 Python 库，提供多维数组对象，各种派生对象（如掩码数组和矩阵），以及用于数组快速操作的各种 API，有包括数学、逻辑、形状操作、排序、选择、输入输出、离散傅立叶变换、基本线性代数，基本统计运算和随机模拟等等。
+
+NumPy 包的核心是 ndarray 对象。它封装了 python 原生的同数据类型的 n 维数组，为了保证其性能优良，其中有许多操作都是代码在本地进行编译后执行的。
+
+## NumPy 为什么这么快
+
+NumPy 通过 ndarray 进行了矢量化，且在底层是通过预编译的 C 代码完成的，而在编写的代码中不需要编写循环、下标等处理代码。使用矢量化代码有许多优点，其中包括：
+
+- 矢量化代码更简洁，更易于阅读
+- 更少的代码行通常意味着更少的错误
+- 代码更接近于标准的数学符号（通常，更容易正确编码数学结构）
+- 矢量化导致产生更多 “Pythonic” 代码。如果没有矢量化，我们的代码就会被低效且难以阅读的 for 循环所困扰。
+
+除了向量化，NumPy 还具备广播机制，也对矩阵运算的加速起到一定作用。广播是用于描述操作的隐式逐元素行为的术语，一般来说，在 NumPy 中，所有操作，不仅仅是算术运算，而是逻辑、位、功能等，都以这种隐式的逐元素方式表现，即它们进行广播。基于广播机制，参与运算的两个参数可以是相同形状的多维数组，或者标量和数组，或者甚至是具有不同形状的两个数组，条件是较小的数组可以“扩展”到更大的形状。有关广播的详细“规则”，请参阅 [numpy.doc.broadcasting](https://www.numpy.org.cn/user/basics/broadcasting.html#module-numpy.doc.broadcasting)。
+
+## 环境安装
 
 建议基于 Anaconda 安装 Python 环境，详细参考相关笔记，此处不再赘述。
+
+```bash
+# 激活某个环境后，安装 numpy
+conda/source activate xxx
+conda install numpy
+```
 
 《Python 数据分析基础教程（第 2 版）》涉及到的库主要有，numpy、matplotlib 和 SciPy，我们使用 anaconda 安装即可。同时其使用 IPython 作为编辑器，我们使用 Py Charm 作为替代，并建议基于 SSH 进行开发。
 
@@ -13,38 +34,81 @@
 - 比如，对于 df.dropna(axis=0) ，从上往下 drop，那就是扔掉包含 NaN 的行
 - 同样是 axis=0，np.sum 体现为对列求和，df.dropna 体现为扔掉行，因此不能死记硬背
 
-# 1. numpy 基础
+# 1. NumPy 基础
 
 ## 1.1 ndarray 对象
 
-- ndarray 是 numpy 中的 N 维数组对象，它是一系列同类型数据的集合，下标从 0 开始索引
-- ndarray 是用于存放相同类型元素的多维数组，其中的每个元素在内存中占据相同的存储大小
-- numpy 内部由以下内容组成：
-  - 指向数据区域的指针
-  - 数据类型 dtype
-  - 描述数组形状的元组，其存储了数组的各维度大小 shape
-  - 一个跨度元祖 stride，其各个值描述为了前进到当前维度下一个元素需要"跨过"的字节数
-- 跨度可以是负数，这样会使数组在内存中后向移动，切片中 `obj[::-1]` 或 `obj[:,::-1]` 就是如此
+NumPy 的核心是一个称作 ndarray 的多维数组，其是一个 N 维数组对象，它是一系列同类型数据的集合，每个元素在内存中占据相同的存储大小，下标从 0 开始索引，每个维度可也称为轴。
+
+ndarray 也被别名所知 array，但 numpy.array 这与标准 Python 库数组类 array.array 不同，后者只处理一维数组并提供较少的功能，它们有如下区别：
+
+- NumPy 数组在创建时具有固定的大小，与 Python 的原生数组对象（可以动态增长）不同，更改 ndarray 的大小将创建一个新数组并删除原来的数组。
+- NumPy 数组中的元素都需要具有相同的数据类型，因此在内存中的大小相同。例外情况：Python 的原生数组里包含了 NumPy 的对象的时候，这种情况下就允许不同大小元素的数组。
+- NumPy 数组有助于对大量数据进行高级数学和其他类型的操作。通常，这些操作的执行效率更高，比使用 Python 原生数组的代码更少。
+- 越来越多的基于 Python 的科学和数学软件包使用 NumPy 数组; 虽然这些工具通常都支持 Python 的原生数组作为参数，但它们在处理之前会还是会将输入的数组转换为 NumPy 的数组，而且也通常输出为 NumPy 数组。换句话说，为了高效地使用当今科学/数学基于 Python 的工具（大部分的科学计算工具），你只知道如何使用 Python 的原生数组类型是不够的，还需要知道如何使用 NumPy 数组。
+
+## 1.3 ndarray 属性
+
+ndarray 对象具备下列几个重要属性：
+
+- ndarray.ndim：秩，即轴的数量或维度的数量，结果是一个整数。
+- ndarray.shape：数组的维度，对于 m 行 n 列的矩阵返回 (m, n)，结果是一个元组，shape 元组的长度就是 rank 或维度的个数 ndim。
+- ndarray.size：数组元素的总个数，相当于 .shape 中 n\*m 的值，结果是一个整数。
+- ndarray.dtype：ndarray 对象的元素类型，返回 numpy.dtype 类型实例，可以使用标准的 Python 类型创建或指定 dtype，另外 NumPy 提供它自己的类型，例如 numpy.int32、numpy.int16 和 numpy.float64。
+- ndarray.itemsize：ndarray 对象中每个元素占用的字节数，结果是一个整数，例如，元素为 float64 类型的数组的 itemsize 为 8（=64/8），而 complex32 类型的数组的 itemsize 为 4（=32/8），它等于 ndarray.dtype.itemsize
+- ndarray.flags：ndarray 对象的内存信息
+- ndarray.real：ndarray 元素的实部，结果是一个 ndarray
+- ndarray.imag：ndarray 元素的虚部，结果是一个 ndarray
+- ndarray.data：包含实际数组元素的缓冲区，由于一般通过数组的索引获取元素，所以通常不需要使用这个属性
+
+我们可以使用下列测试代码测试上述基本属性：
+
+```py
+import numpy as np
+
+
+def print_prop(prop_name, value):
+    print(prop_name + ": " + str(value))
+
+
+if __name__ == '__main__':
+    arr = np.arange(15).reshape(3, 5)
+    print(arr)
+    print_prop("data", arr.data)
+    print_prop("shape", arr.shape)
+    print_prop("ndim", arr.ndim)
+    print_prop("type", type(arr))
+    print_prop("d_type", arr.dtype.name)
+    print_prop("item_size", arr.itemsize)
+    print_prop("size", arr.size)
+```
+
+一个 ndarray 对象内部包含下列主要部分：
+
+- 指向数据区域的指针，即 data 域
+- 数据类型 dtype，即 dtype 域
+- 描述数组形状的元组，其存储了数组的各维度大小 shape
+- 一个跨度元组 stride，其各个值描述为了前进到当前维度下一个元素需要"跨过"的字节数（跨度可以是负数，这样会使数组在内存中后向移动，切片中 `obj[::-1]` 或 `obj[:,::-1]` 就是如此）
 
 ## 1.2 数据类型
 
-- numpy 支持的数据类型比 Python 内置的类型要多很多，基本上可以和 C 语言的数据类型对应上，其中部分类型对应为 Python 内置的类型，可查看 [numpy 数据类型](http://www.runoob.com/numpy/numpy-dtype.html)
-- numpy 的数值类型实际上是 dtype 对象的实例，并对应唯一的字符，包括 np.bool\_，np.int32，np.float32，等等
+NumPy 支持的数据类型比 Python 内置的类型要多很多，基本上可以和 C 语言的数据类型对应上，其中部分类型对应为 Python 内置的类型，但由于 C 中类型长度和平台定义有关，在 32/64 位系统上会有不同长度，因此 NumPy 还额外定义了固定大小的别名，比如 np.int32, np.int64 等，详细可查看 [NumPy 数据类型](http://www.runoob.com/numpy/numpy-dtype.html)。
 
-**数据类型对象 np.dtype**
+### 数据类型对象 np.dtype
 
-- 数据类型对象用于描述 ndarray 对应的内存区域如何使用，其依赖以下方面：
-  - 数据的类型（整数、浮点数、Python 对象）
-  - 数据的大小（例如整数用多少字节存储）
-  - 数据的字节顺序（大端法、小端法）
-  - 在结构化类型的情况下，字段的名称、每个字段的数据类型和每个字段所取的内存块的部分
-  - 如果数据类型是子数组，它的形状和数据类型
-- 字节顺序是通过对数据类型预先设定"<"或">"来决定的。"<"意味着小端法(最小值存储在最小的地址，即低位组放在最前面)。">"意味着大端法(最重要的字节存储在最小的地址，即高位组放在最前面)
-- 可以使用 `numpy.dtype(object, align, copy)` 构造 dtype 对象
-  - object - 要转换为的数据类型对象
-  - align - 如果为 true，填充字段使其类似 C 的结构体。
-  - copy - 复制 dtype 对象 ，如果为 false，则是对内置数据类型对象的引用
-- 前面提供的 numpy 数据类型实际上是 np.dtype 类型的实例
+NumPy 的数值类型实际上是 dtype 对象的实例，并对应唯一的字符，包括 np.bool\_，np.int32，np.float32 等等，数据类型对象用于描述 ndarray 对应的内存区域如何使用，其依赖以下方面：
+
+- 数据的类型（整数、浮点数、Python 对象）
+- 数据的大小（例如整数用多少字节存储）
+- 数据的字节顺序（大端法、小端法）：字节顺序是通过对数据类型预先设定"<"或">"来决定的。"<"意味着小端法(最小值存储在最小的地址，即低位组放在最前面)。">"意味着大端法(最重要的字节存储在最小的地址，即高位组放在最前面)
+- 在结构化类型的情况下，字段的名称、每个字段的数据类型和每个字段所取的内存块的部分
+- 如果数据类型是子数组，它的形状和数据类型
+
+我们前面提供的 numpy 数据类型实际上是官方给我们预先初始化好的 np.dtype 类型的实例，我们也可以使用 `numpy.dtype(object, align, copy)` 构造 dtype 对象实例，其需要提供下面的三个参数：
+
+- object：要转换为的数据类型对象
+- align：如果为 true，填充字段使其类似 C 的结构体。
+- copy：复制 dtype 对象，如果为 false，则是对内置数据类型对象的引用
 
 **样例**
 
@@ -67,18 +131,6 @@ a = np.array([('abc', 21, 50),('xyz', 18, 75)], dtype = student)
 ```
 
 - 每个内置类型都有一个唯一的定义它的字符代码，例如 S 表示字符串，i 表示整型，f 表示浮点型
-
-## 1.3 数据属性
-
-- ndarray.ndim 秩，即轴的数量或维度的数量，结果是一个整数
-- ndarray.shape 数组的维度，对于矩阵，n 行 m 列，结果是一个元组
-- ndarray.size 数组元素的总个数，相当于 .shape 中 n\*m 的值，结果是一个整数
-- ndarray.dtype ndarray 对象的元素类型，返回 numpy.dtype 类型实例
-- ndarray.itemsize ndarray 对象中每个元素的大小，以字节为单位，结果是一个整数
-- ndarray.flags ndarray 对象的内存信息
-- ndarray.real ndarray 元素的实部，结果是一个 ndarray
-- ndarray.imag ndarray 元素的虚部，结果是一个 ndarray
-- ndarray.data 包含实际数组元素的缓冲区，由于一般通过数组的索引获取元素，所以通常不需要使用这个属性
 
 # 2. 各种创建方式
 
