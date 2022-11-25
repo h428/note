@@ -1,10 +1,10 @@
-# 概述
+# 1 概述
 
 NumPy 是 Python 中科学计算的基础包。它是一个 Python 库，提供多维数组对象，各种派生对象（如掩码数组和矩阵），以及用于数组快速操作的各种 API，有包括数学、逻辑、形状操作、排序、选择、输入输出、离散傅立叶变换、基本线性代数，基本统计运算和随机模拟等等。
 
 NumPy 包的核心是 ndarray 对象。它封装了 python 原生的同数据类型的 n 维数组，为了保证其性能优良，其中有许多操作都是代码在本地进行编译后执行的。
 
-## NumPy 为什么这么快
+## 1.1 NumPy 为什么这么快
 
 NumPy 通过 ndarray 进行了矢量化，且在底层是通过预编译的 C 代码完成的，而在编写的代码中不需要编写循环、下标等处理代码。使用矢量化代码有许多优点，其中包括：
 
@@ -15,12 +15,11 @@ NumPy 通过 ndarray 进行了矢量化，且在底层是通过预编译的 C �
 
 除了向量化，NumPy 还具备广播机制，也对矩阵运算的加速起到一定作用。广播是用于描述操作的隐式逐元素行为的术语，一般来说，在 NumPy 中，所有操作，不仅仅是算术运算，而是逻辑、位、功能等，都以这种隐式的逐元素方式表现，即它们进行广播。基于广播机制，参与运算的两个参数可以是相同形状的多维数组，或者标量和数组，或者甚至是具有不同形状的两个数组，条件是较小的数组可以“扩展”到更大的形状。有关广播的详细“规则”，请参阅 [numpy.doc.broadcasting](https://www.numpy.org.cn/user/basics/broadcasting.html#module-numpy.doc.broadcasting)。
 
-## 环境安装
+## 1.2 环境安装
 
 建议基于 Anaconda 安装 Python 环境，详细参考相关笔记，此处不再赘述。
 
 ```bash
-# 激活某个环境后，安装 numpy
 conda/source activate xxx
 conda install numpy
 ```
@@ -34,9 +33,9 @@ conda install numpy
 - 比如，对于 df.dropna(axis=0) ，从上往下 drop，那就是扔掉包含 NaN 的行
 - 同样是 axis=0，np.sum 体现为对列求和，df.dropna 体现为扔掉行，因此不能死记硬背
 
-# 1. NumPy 基础
+# 2 NumPy 基础
 
-## 1.1 ndarray 对象
+## 2.1 ndarray 对象
 
 NumPy 的核心是一个称作 ndarray 的多维数组，其是一个 N 维数组对象，它是一系列同类型数据的集合，每个元素在内存中占据相同的存储大小，下标从 0 开始索引，每个维度可也称为轴。
 
@@ -47,7 +46,7 @@ ndarray 也被别名所知 array，但 numpy.array 这与标准 Python 库数组
 - NumPy 数组有助于对大量数据进行高级数学和其他类型的操作。通常，这些操作的执行效率更高，比使用 Python 原生数组的代码更少。
 - 越来越多的基于 Python 的科学和数学软件包使用 NumPy 数组; 虽然这些工具通常都支持 Python 的原生数组作为参数，但它们在处理之前会还是会将输入的数组转换为 NumPy 的数组，而且也通常输出为 NumPy 数组。换句话说，为了高效地使用当今科学/数学基于 Python 的工具（大部分的科学计算工具），你只知道如何使用 Python 的原生数组类型是不够的，还需要知道如何使用 NumPy 数组。
 
-## 1.3 ndarray 属性
+## 2.2 ndarray 属性
 
 ndarray 对象具备下列几个重要属性：
 
@@ -83,20 +82,38 @@ if __name__ == '__main__':
     print_prop("size", arr.size)
 ```
 
-一个 ndarray 对象内部包含下列主要部分：
+## 2.3 元素类型
 
-- 指向数据区域的指针，即 data 域
-- 数据类型 dtype，即 dtype 域
-- 描述数组形状的元组，其存储了数组的各维度大小 shape
-- 一个跨度元组 stride，其各个值描述为了前进到当前维度下一个元素需要"跨过"的字节数（跨度可以是负数，这样会使数组在内存中后向移动，切片中 `obj[::-1]` 或 `obj[:,::-1]` 就是如此）
+NumPy 支持的数据类型比 Python 内置的类型要多很多，基本上可以和 C 语言的数据类型对应上，但由于 C 中类型长度和平台定义有关，在 32/64 位系统上会有不同长度，因此 NumPy 还额外定义了固定大小的别名，比如 np.int32, np.int64 等，详细可查看 [NumPy 数据类型](http://www.runoob.com/numpy/numpy-dtype.html)。
 
-## 1.2 数据类型
+在 NumPy 中，定义了很多 dtype 实例的别名，在使用这些别名时，在 ndarray 内部会转化为的真正类型一般是带数据长度的类型，主要包括下述类型：
 
-NumPy 支持的数据类型比 Python 内置的类型要多很多，基本上可以和 C 语言的数据类型对应上，其中部分类型对应为 Python 内置的类型，但由于 C 中类型长度和平台定义有关，在 32/64 位系统上会有不同长度，因此 NumPy 还额外定义了固定大小的别名，比如 np.int32, np.int64 等，详细可查看 [NumPy 数据类型](http://www.runoob.com/numpy/numpy-dtype.html)。
+|  NumPy 类型   |       描述        |                   别名                   |
+| :-----------: | :---------------: | :--------------------------------------: |
+|   np.bool\_   |     bool 类型     |                 np.bool                  |
+|    np.int8    |    单字节整数     |                 np.byte                  |
+|   np.int16    |    双字节整数     |                 np.short                 |
+|   np.int32    |    4 字节整数     |            np.intc, np.int\_             |
+|   np.int64    |    8 字节整数     |           np.longlong, np.intp           |
+|   np.uint8    | 无符号单字节整数  |                 np.ubyte                 |
+|   np.uint16   | 无符号双字节整数  |                np.ushort                 |
+|   np.uint32   | 无符号 4 字节整数 |              np.uintc, uint              |
+|   np.uint64   | 无符号 8 字节整数 |          np.ulonglong, np.uintp          |
+|  np.float16   |   半精度浮点数    |                 np.half                  |
+|  np.float32   |   单精度浮点数    |            np.single, float\_            |
+|  np.float64   |   双精度浮点数    |         np.double, np.longdouble         |
+| np.complex64  |    单精度复数     |                np.csingle                |
+| np.complex128 |    双精度复数     | np.cdouble, np.clongdouble, np.complex\_ |
 
-### 数据类型对象 np.dtype
+> 注意：上表中的别名列是在 64 位机器上得到的统计结果，由于 numpy 中的原始类型与 C 中的原始类型紧密相关，因此很多别名都和平台定义有关，最后再转化到指定字节长度的类型，如果在 32 位机器上使用别名可能会得到不同的对应结果，但带长度的类型是一致的。
 
-NumPy 的数值类型实际上是 dtype 对象的实例，并对应唯一的字符，包括 np.bool\_，np.int32，np.float32 等等，数据类型对象用于描述 ndarray 对应的内存区域如何使用，其依赖以下方面：
+Python 内置的 bool, int, float 和 complex 类型也可直接作为 dtype，NumPy 会自动将其转化为对应的 np.bool\_, np.int\_, np.float\_ 和 np.complex\_，同时这些映射后的类型除了 np.bool\_ 外也只是别名，真正的对应类型会映射到对应的带长度的 NumPy 类型。
+
+### 2.3.1 类型描述类 np.dtype
+
+NumPy 的数值类型实际上是 np.dtype 对象的实例，并对应唯一的字符，包括前面列举的 np.bool\_，np.int32，np.float32 等等，且前面已经介绍过，对一个 np.ndarray 数组，可以使用 ndarray.dtype 属性查看其类型描述实例。
+
+数据类型对象 dtype 用于描述 ndarray 对应的内存区域如何使用，其主要包括下述几个方面：
 
 - 数据的类型（整数、浮点数、Python 对象）
 - 数据的大小（例如整数用多少字节存储）
@@ -104,17 +121,19 @@ NumPy 的数值类型实际上是 dtype 对象的实例，并对应唯一的字�
 - 在结构化类型的情况下，字段的名称、每个字段的数据类型和每个字段所取的内存块的部分
 - 如果数据类型是子数组，它的形状和数据类型
 
+如果要转换 ndarray 的 dtype，则可以使用 `ndarray.astype(np.dtype)` 方法，其不更改原数组，会拷贝一份内容并转化到对应类型后返回，例如 `np.empty((2, 3)).astype(np.int32)` 会得到一个整数矩阵。
+
+### 2.3.2 自定义类型
+
 我们前面提供的 numpy 数据类型实际上是官方给我们预先初始化好的 np.dtype 类型的实例，我们也可以使用 `numpy.dtype(object, align, copy)` 构造 dtype 对象实例，其需要提供下面的三个参数：
 
 - object：要转换为的数据类型对象
 - align：如果为 true，填充字段使其类似 C 的结构体。
 - copy：复制 dtype 对象，如果为 false，则是对内置数据类型对象的引用
 
-**样例**
-
 - 标量类型：`dt = np.dtype(np.int32)`
 - int8, int16, int32, int64 四种数据类型可以使用字符串 'i1', 'i2', 'i4', 'i8' 代替，例如 `dt = np.dtype('i4')`
-- 字节顺序标注：`dt = np.dtype('<i4')`
+- 字节大小端顺序标注：`dt = np.dtype('<i4')`
 - 将 dtype 应用到 ndarray，其中每个元素是一个单变量元组，即 age
 
 ```py
@@ -132,86 +151,151 @@ a = np.array([('abc', 21, 50),('xyz', 18, 75)], dtype = student)
 
 - 每个内置类型都有一个唯一的定义它的字符代码，例如 S 表示字符串，i 表示整型，f 表示浮点型
 
-# 2. 各种创建方式
+# 3 数组创建
 
-## 2.1 常用快速创建方式
+NumPy 提供了多种方式来创建 ndarray 对象，主要包括：
 
-- `numpy.empty(shape, dtype = float, order = 'C')` 创建一个未初始化的数组
-  - shape 数组形状，接受 list 或 tuple 类型参数（可能由于内部只用了元素下标运算符 `[]`，但建议采用 list 形式的参数）
-  - dtype 数据类型，可选，默认是 numpy 中的 float64 类型
-  - order 有"C"和"F"两个选项,分别代表，行优先和列优先，在计算机内存中的存储元素的顺序
-  - 样例： `x = np.empty([3,2], dtype = int) ` 或 `x = np.empty((3,2), dtype = int) `
-- `numpy.zeros(shape, dtype = float, order = 'C')` 创建一个全为 0 的数组
-  - 参数和前面保持一致，下面没有特殊说明，参数含义保持一致
-  - 默认创建 float64 类型 `x = np.zeros(5) `
-  - 指定为 int 型 `x = np.zeros((5,), dtype = np.int)`
-  - 指定为自定义类型 `x = np.zeros((2,2), dtype = [('x', 'i4'), ('y', 'i4')])`
-- `numpy.ones(shape, dtype = None, order = 'C')` 创建一个全 1 数组
-  - 默认为浮点数 `x = np.ones(5)`
-  - 设置为 int 型 `x = np.ones([2,2], dtype = int)`
+- 给定数组形状快速创建 ndarray
+- 从已有数组或对象创建 ndarray
+- 给定数值范围快速创建 ndarray
 
-## 2.2 从已有数组创建
+## 3.1 给定数组形状快速创建
 
-- 使用内置 list 创建 ndarray : `numpy.array(object, dtype = None, copy = True, order = None, subok = False, ndmin = 0)`
-  - object : 数组或嵌套的数列
-  - dtype : 数组元素的数据类型，可选
-  - copy : 对象是否需要复制，可选
-  - order : 创建数组的样式，C 为行方向，F 为列方向，A 为任意方向（默认）
-  - subok : 默认返回一个与基类类型一致的数组
-  - ndmin : 指定生成数组的最小维度
-- `numpy.asarray(a, dtype = None, order = None)`，作用类似 numpy.array，但 numpy.asarray 只有三个
+### 3.1.1 np.empty
 
-  - a 任意形式的输入参数，可以是，列表, 列表的元组, 元组, 元组的元组, 元组的列表，多维数组
-  - dtype 数据类型，可选
-  - order 可选，有"C"和"F"两个选项,分别代表，行优先和列优先，在计算机内存中的存储元素的顺序
-  - 从 list 创建 `x = np.asarray([1,2,3])`
-  - 从 tuple 创建 `x = np.asarray((1,2,3))`
-  - 不规则 list `x = np.asarray([(1,2,3),(4,5)]) `，每一个元素是一个 object 类型
+使用 `np.empty(shape, dtype = float64, order = 'C')` 可以创建一个未初始化的数组，其入参具体含义如下所示：
 
-- `numpy.frombuffer(buffer, dtype = float, count = -1, offset = 0)` 用于实现动态数组，其接受 buffer 输入参数，以流的形式读入转化成 ndarray 对象
-  - buffer 可以是任意对象，会以流的形式读入
-  - dtype 返回数组的数据类型，可选
-  - count 读取的数据数量，默认为-1，读取所有数据。
-  - offset 读取的起始位置，默认为 0
-  - 样例 `x = np.frombuffer(b'Hello World', dtype = 'S1')`
-- `numpy.fromiter(iterable, dtype, count=-1)` 从迭代器中取出对象创建 ndarray，返回一位数组：
-  - iterable 可迭代对象
-  - dtype 返回数组的数据类型
-  - count 读取的数据数量，默认为-1，读取所有数据
+- shape 数组形状，接受 tuple 或 list 类型参数（可能由于内部只用了元素下标运算符 `[]` 来取出各个维度的长度，但建议采用 tuple 形式的入参）
+- dtype 数据类型，可选，默认是 numpy 中的 float64 类型
+- order 有"C"和"F"两个选项,分别代表，行优先和列优先，在计算机内存中的存储元素的顺序
+- 参考样例： `x = np.empty((3,2), dtype = int) ` 或 `x = np.empty([3,2], dtype = int) ` 或
 
-## 2.3 从数值范围创建数组
+> 注：1.20.0+ 版本引入了 like 入参，但是向前兼容的，不影响使用 `numpy.zeros(shape, dtype=float, order='C', *, like=None)`
 
-- `numpy.arange(start, stop, step, dtype)` 生成 [start, stop) 区间的数据，步长为 step
-  - start 起始值，默认为 0
-  - stop 终止值（不包含）
-  - step 步长，默认为 1
-  - dtype 返回 ndarray 的数据类型，如果没有提供，则会使用输入数据的类型
-  - 样例 `x = np.arange(5)`，默认是 int32 型
-  - 设置类型 `x = np.arange(5, dtype = float)`
-  - 设置步长 `x = np.arange(10,20,2)`
-- `np.linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None)` 生成区间 [start, stop] 的等差数列，公比根据数量 num 自动确定
-  - start 序列的起始值
-  - stop 序列的终止值，如果 endpoint 为 true，该值包含于数列中
-  - num 要生成的等步长的样本数量，默认为 50
-  - endpoint 该值为 ture 时，数列中中包含 stop 值，反之不包含，默认是 True
-  - retstep 如果为 True 时，生成的数组中会显示间距，反之不显示。
-  - dtype ndarray 的数据类型
-  - 样例 `x = np.linspace(1,10,10)`
-  - 不包含 stop `a = np.linspace(10, 20, 5, endpoint = False)`
-  - 设你想要的公比为 d，则若生成序列中包含 stop，则 num 应该设置为 $(stop - num) / d + 1$
-- `np.logspace(start, stop, num=50, endpoint=True, base=10.0, dtype=None)` 用于创建一个于等比数列：
-  - start 序列的起始值为：base ** start，** 表示次方
-  - stop 序列的终止值为：base \*\* stop。如果 endpoint 为 true，该值包含于数列中
-  - num 要生成的等步长的样本数量，默认为 50
-  - endpoint 该值为 ture 时，数列中中包含 stop 值，反之不包含，默认是 True。
-  - base 对数 log 的底数。
-  - dtype ndarray 的数据类型
-  - 样例 `x = np.logspace(1,10,10, base=2)`
-  - 注意前面三个参数生成等差数列，然后将它们应用于底数上，因此生成等比数列
+### 3.1.2 np.zeros
 
-# 3. 常用操作
+使用 `np.zeros(shape, dtype = float64, order = 'C')` 创建一个全为 0 的数组，其入参具体含义和 no.empty 一致。
 
-## 3.1 基本操作
+关于 np.zeros，有如下说明内容：
+
+- 默认创建 float64 类型 `x = np.zeros(5) `
+- 指定为 int 型 `x = np.zeros((5,), dtype = np.int)`
+- 指定为自定义类型 `x = np.zeros((2,2), dtype = [('x', 'i4'), ('y', 'i4')])`
+
+### 3.1.3 np.ones
+
+使用 `numpy.ones(shape, dtype = np.float64, order = 'C')` 创建一个全 1 数组
+
+- 默认为浮点数 `x = np.ones(5)`
+- 设置为 int 型 `x = np.ones([2,2], dtype = int)`
+
+## 3.2 从已有数组创建
+
+### 3.2.1 使用 np.array 方法
+
+如果已经拥有一个 list 类型的常量或者变量，可以使用 `numpy.array(object, dtype = None, copy = True, order = None, subok = False, ndmin = 0)` 将 list 转化为 ndarray，其各个参数的具体含义如下：
+
+- object : 数组或嵌套的数列
+- dtype : 数组元素的数据类型，可选
+- copy : 对象是否需要复制，可选
+- order : 创建数组的样式，C 为行方向，F 为列方向，A 为任意方向（默认）
+- subok : 默认返回一个与基类类型一致的数组
+- ndmin : 指定生成数组的最小维度
+
+例如，使用 `np.array([(1.5,2,3), (4,5,6)])`，其会得到如下的 ndarray：
+
+```py
+array([[1.5, 2. , 3. ],
+       [4. , 5. , 6. ]])
+```
+
+### 3.2.2 使用 np.asarray 方法
+
+除了 np.array 方法，使用 `numpy.asarray(object, dtype = None, order = None)` 也可以完成一个普通对象（包括 list）到 ndarray 的转换，其作用类似 numpy.array，但 numpy.asarray 只有三个入参：
+
+- object 任意形式的输入参数，可以是，列表, 列表的元组, 元组, 元组的元组, 元组的列表，多维数组
+- dtype 数据类型，可选
+- order 可选，有 "C" 和 "F" 两个选项，分别代表，行优先和列优先，在计算机内存中的存储元素的顺序
+
+通过使用 np.asarray，我们可以从各种不同的已有线性类型创建 ndarray 对象，比如：
+
+- 使用 `np.asarray([1,2,3])` 从 list 创建 ndarray
+- 使用 `np.asarray((1,2,3))` 从 tuple 创建 ndarray
+- 使用 `np.asarray([(1,2,3),(4,5)], object)` 从不规则的 list 创建 ndarray，对于不规则 list 创建出来的 ndarray，其 dtype 的本质是一个 object 类型
+
+### 3.2.3 使用 numpy.frombuffer
+
+使用 `numpy.frombuffer(buffer, dtype = float, count = -1, offset = 0)` 可以实现几个 ndarray 管理的动态数组，其接受 buffer 输入参数，以流的形式读入转化成 ndarray 对象，参数列表含义如下：
+
+- buffer 可以是任意对象，会以流的形式读入
+- dtype 返回数组的数据类型，可选
+- count 读取的数据数量，默认为-1，读取所有数据。
+- offset 读取的起始位置，默认为 0
+- 样例 `x = np.frombuffer(b'Hello World', dtype = 'S1')`
+
+### 3.2.4 使用 numpy.fromiter
+
+使用 `numpy.fromiter(iterable, dtype, count=-1)` 可以从迭代器中取出对象创建 ndarray，返回一维数组，其入参含义如下：
+
+- iterable 可迭代对象
+- dtype 返回数组的数据类型
+- count 读取的数据数量，默认为-1，读取所有数据
+
+## 3.3 从数值范围创建数组
+
+> 特别注意：从数值范围创建的数组得到的结果是一个向量，且一般是一个非标准的向量，其 shape 往往为 `(n,)`，在进行深度学习的矢量化运算时，一般需要 reshape 为标准列向量 `(n, 1)` 或标准行向量 `(1, n)`。
+
+### 3.3.1 np.arange
+
+使用 `numpy.arange(start, stop, step, dtype)` 可以生成 [start, stop) 区间的数据，步长为 step，其各个入参的具体含义如下：
+
+- start 起始值，默认为 0
+- stop 终止值（不包含）
+- step 步长，默认为 1
+- dtype 返回 ndarray 的数据类型，如果没有设置，则会使用输入数据的类型，例如 `np.arange(5)`返回的 ndarray，其 dtype 是 int32 类型
+
+```py
+np.arange(5, dtype = float) # 创建 [0, 5) 步长为 1 的 float 数组
+```
+
+### 3.3.2 np.linspace
+
+当 np.arange 与浮点参数一起使用时，由于有限的浮点精度，通常不可能预测所获得的元素的步长，比如想在 $[0, 2\pi]$ 间生成 100 个等差数列时，出于这个原因，最好使用 linspace 函数来接收我们想要的元素数量的函数，设置数列个数，而不是步长。
+
+使用 `np.linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None)` 生成区间 `[start, stop]` 的等差数列，公差根据数量 num 自动确定，其各个入参含义如下：
+
+- start：序列的起始值
+- stop：序列的终止值，如果 endpoint 为 true，该值包含于数列中
+- num：要生成的等步长的样本数量，默认为 50，会根据 start, stop 和 num 计算公差
+- endpoint：该值为 ture 时，数列中中包含 stop 值，反之不包含，默认是 True
+- retstep：如果为 True 时，生成的数组中会显示间距，反之不显示。
+- dtype：ndarray 的数据类型，默认为 float64
+
+```py
+np.linspace(1, 10, 10) # 生成 [1, 10] 公差为 1 的 float64 等差数列
+np.linspace(10, 20, 5, endpoint = False) # 生成 [10, 18] 公差为 2 的 float64 等差数列
+```
+
+### 3.3.3 np.logspace
+
+使用 `np.logspace(start, stop, num=50, endpoint=True, base=10.0, dtype=None)` 创建一个等比数列：
+
+- start：序列的起始值为 base 的 start 次方
+- stop：序列的终止值为：base 的 stop 次方，如果 endpoint 为 true，该值包含于数列中
+- num：要生成的等步长的样本数量，默认为 50，基于 start, stop 和 num 计算公差 d，然后 base 的 d 次方即为公比
+- endpoint：该值为 ture 时，数列中中包含 stop 值，反之不包含，默认是 True。
+- base：对数 log 的底数。
+- dtype：ndarray 的数据类型，默认为 np.float64
+
+以下列代码为例，前面三个参数生成等差数列，公差 d = 1，然后将它们应用于底数 2 上，因此生成等比数列公比为 2 的 1 次方，即 q = 2。
+
+```py
+np.logspace(1, 10, 10, base=2) # 1, 2, 4 ...
+```
+
+# 4 常用操作
+
+## 4.1 基本操作
 
 **调整形状**
 
@@ -256,7 +340,7 @@ np.arange(4).reshape((2,2))
 x.transpose()
 ```
 
-## 3.2 切片和索引
+## 4.2 切片和索引
 
 **切片**
 
@@ -366,11 +450,11 @@ x=np.arange(32).reshape((8,4))
 print (x[np.ix_([1,5,7,2],[0,3,1,2])])
 ```
 
-# 4. 常用运算
+# 5 常用运算
 
-# 5. 高级特性
+# 6 高级特性
 
-## 5.1 广播
+## 6.1 广播
 
 - 当运算中的 2 个数组的形状不同且满足广播条件时，numpy 将自动触发广播机制，例如
 
@@ -395,7 +479,7 @@ bb = np.tile(b, (4, 1)) # 广播，bb 相当于 b 复制了 4 行
 print(a + bb)
 ```
 
-## 5.2 迭代数组
+## 6.2 迭代数组
 
 - 利用 `np.nditer` 获取 ndarray 的逐元素迭代器（默认将按第一维迭代，例如二维矩阵按行迭代）
 
@@ -439,10 +523,10 @@ for x,y in np.nditer([a,b]):
 
 ---
 
-# 3. 矩阵的加法、减法、数乘、数学运算、元素判断等
+# 7 矩阵的加法、减法、数乘、数学运算、元素判断等
 
 ```py
-# 3. 矩阵的加法、减法、数乘、数学运算、元素判断等
+# 8 矩阵的加法、减法、数乘、数学运算、元素判断等
 a = np.array([10, 20, 30, 40])
 """
 [10 20 30 40]
@@ -452,7 +536,7 @@ b = np.arange(4)  # [0, 1, 2, 3]
 [0 1 2 3]
 """
 
-# 常见运算
+# 9 常见运算
 print(a - b)  # 减法
 """
 [10 19 28 37]
@@ -470,17 +554,17 @@ print(10*np.sin(a))  # 数乘与常见数学运算
 [-5.44021111  9.12945251 -9.88031624  7.4511316 ]
 """
 
-# 元素判断
+# 10 元素判断
 print(b < 3)  # 小于3的位置为True，否则False，dtype=bool
 """
 [ True  True  True False]
 """
 ```
 
-# 4. 矩阵逐元素相乘、矩阵乘法
+# 11 矩阵逐元素相乘、矩阵乘法
 
 ```py
-# 4. 矩阵逐元素相乘、矩阵乘法
+# 12 矩阵逐元素相乘、矩阵乘法
 a = np.array([[1,1],
             [0, 1]])
 """
@@ -510,10 +594,10 @@ print(a.dot(b))  # 矩阵乘法的另一种形式  [[2 4] \n [2 3]]
 """
 ```
 
-# 5. 矩阵求和、求最大、求最小（可按行列或整个矩阵）
+# 13 矩阵求和、求最大、求最小（可按行列或整个矩阵）
 
 ```py
-# 5. 矩阵求和、求最大、求最小（可按行列或整个矩阵）
+# 14 矩阵求和、求最大、求最小（可按行列或整个矩阵）
 
 np.random.seed(1)  # 设置随机种子，保证结果的一致性
 arr = np.random.random([2, 4])  # 随机生成区间 [0,1] 的指定形状的随机数
@@ -548,10 +632,10 @@ print(all_sum)
 """
 ```
 
-# 6. 最大、最小值索引（可按行、列、整个矩阵）
+# 15 最大、最小值索引（可按行、列、整个矩阵）
 
 ```py
-# 6. 最大、最小值索引（可按行、列、整个矩阵）
+# 16 最大、最小值索引（可按行、列、整个矩阵）
 arr = np.arange(2, 14).reshape((3, 4))
 print(arr)
 """
@@ -568,10 +652,10 @@ print(np.mean(arr))  # 整个矩阵的平均值 7.5
 print(arr.mean())  # 另一种求平均值的方式 7.5
 ```
 
-# 7. 平均值、中位数、累加和、逐个差、排序
+# 17 平均值、中位数、累加和、逐个差、排序
 
 ```py
-# 7. 平均值、中位数、累加和、逐个差、排序
+# 18 平均值、中位数、累加和、逐个差、排序
 print(np.average(arr)) # 另一种求平均值的方式 7.5
 print(np.median(arr))  # 中位数 7.5
 print(np.cumsum(arr))  # 前面i个数的累加和：[ 2  5  9 14 20 27 35 44 54 65 77 90]
@@ -590,10 +674,10 @@ array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3], dtype=int64))
 print(np.sort(arr)) # 按行排序
 ```
 
-# 8. 矩阵转置、矩阵限定（限定最大值、最小值）
+# 19 矩阵转置、矩阵限定（限定最大值、最小值）
 
 ```py
-# 8. 矩阵转置、矩阵限定（限定最大值、最小值）
+# 20 矩阵转置、矩阵限定（限定最大值、最小值）
 print(np.transpose(arr))  # 矩阵转置
 """
 [[ 2  6 10]
@@ -608,7 +692,7 @@ print(np.clip(arr, 5, 9)) # 截取
  [6 7 8 9]
  [9 9 9 9]]
 """
-# 注：多种操作都可以通过 axis 设置对行或列进行操作，并最好通过 keepdims 保持矩阵形状
+# 21 注：多种操作都可以通过 axis 设置对行或列进行操作，并最好通过 keepdims 保持矩阵形状
 print(np.mean(arr, axis=1, keepdims=True))  # 行求平均，结果保持为列向量
 """
 [[  3.5]
@@ -617,10 +701,10 @@ print(np.mean(arr, axis=1, keepdims=True))  # 行求平均，结果保持为列�
 """
 ```
 
-# 9. numpy 的索引、切片、迭代
+# 22 numpy 的索引、切片、迭代
 
 ```py
-# 9. numpy 的索引、切片、迭代
+# 23 numpy 的索引、切片、迭代
 arr = np.arange(3, 15) # [ 3  4  5  6  7  8  9 10 11 12 13 14]
 print(arr[3])  # 6
 
@@ -637,26 +721,26 @@ print(arr[0, :]) # 第0行，:表示所有列 -> [3 4 5 6]
 print(arr[:, 1]) # 第1列，:表示所有航 -> [ 4  8 12]，注意变为行向量
 print(arr[1, 1:3]) # 第1行，1-2列 -> [8 9]
 
-# 迭代行
+# 24 迭代行
 for row in arr:
     print(row)
 
-# 迭代列：利用转置
+# 25 迭代列：利用转置
 for col in arr.T:
     print(col)
 
-# 数组展开为行
+# 26 数组展开为行
 print(arr.flatten())  # [ 3  4  5  6  7  8  9 10 11 12 13 14]
-# 遍历项
+# 27 遍历项
 for item in arr.flat: # arr.flat 是一个迭代器
     print(item)
 
 ```
 
-# 10. np 矩阵合并
+# 28 np 矩阵合并
 
 ```py
-# 10. np 矩阵合并
+# 29 np 矩阵合并
 a = np.array([1,1,1])
 b = np.array([2,2,2])
 
@@ -670,12 +754,12 @@ print(np.hstack((a, b))) # 按行方向堆叠
 [1 1 1 2 2 2]
 """
 
-# 正常情况下，向量不是标准的行、列向量，这种向量的转置无效
-# 一般需要将其转化为标准的行、列向量
+# 30 正常情况下，向量不是标准的行、列向量，这种向量的转置无效
+# 31 一般需要将其转化为标准的行、列向量
 print(a.shape)  # 非标准向量，(3,)
 print(a[np.newaxis, :].shape)  # 转为行向量 (3,) -> (1, 3)
 print(a[:, np.newaxis].shape)  # 转为列向量 (3,) -> (3, 1)
-# 也可以使用reshape转化，且更方便
+# 32 也可以使用reshape转化，且更方便
 print(a.reshape(1, -1).shape)  # 转换为行向量  (3,) -> (1, 3)，-1所在的维度自动计算
 print(a.reshape(-1, 1).shape)  # 转为列向量 (3,) -> (3, 1)
 print(a.shape)  # 注意操作后要重新赋值，否则a仍然保持不变
@@ -698,7 +782,7 @@ print(np.vstack((a, b)))  # 垂直堆叠
  [2]]
 """
 
-# 另一种堆叠：np.concatenate((A,B), axis=...) 可以在连接时指定方向
+# 33 另一种堆叠：np.concatenate((A,B), axis=...) 可以在连接时指定方向
 print(np.concatenate((a,b,b,a), axis=1))  # 行方向
 """
 [[1 2 2 1]
@@ -707,10 +791,10 @@ print(np.concatenate((a,b,b,a), axis=1))  # 行方向
 """
 ```
 
-# 11. np 矩阵分割
+# 34 np 矩阵分割
 
 ```py
-# 11. np 矩阵分割
+# 35 np 矩阵分割
 arr = np.arange(12).reshape(3, 4)
 """
 [[ 0  1  2  3]
@@ -732,7 +816,7 @@ print(np.split(arr, 3, axis=0))  # 纵向分割
 [array([[0, 1, 2, 3]]), array([[4, 5, 6, 7]]), array([[ 8,  9, 10, 11]])]
 """
 
-# 不等量分割可以用 np.array_split，多出来的优先放置在前面的数组
+# 36 不等量分割可以用 np.array_split，多出来的优先放置在前面的数组
 print(np.array_split(arr, 3, axis=1)) # 横向分割
 """
 [array([[0, 1],
@@ -746,7 +830,7 @@ print(np.array_split(arr, 3, axis=1)) # 横向分割
        [11]])]
 """
 
-# 类似合并，也有 vsplit 和 hsplit
+# 37 类似合并，也有 vsplit 和 hsplit
 print(np.hsplit(arr, 2))
 print(np.vsplit(arr, 3))
 
@@ -754,10 +838,10 @@ print(arr)
 
 ```
 
-# 12. 拷贝与深拷贝
+# 38 拷贝与深拷贝
 
 ```py
-# 12. 拷贝与深拷贝
+# 39 拷贝与深拷贝
 
 a = np.arange(4)
 
@@ -768,14 +852,14 @@ d = b
 print(b is a)  # True
 print(d is a)  # True
 
-# a 的修改会导致 b c d 的修改，因为他们指向同一个地址
+# 40 a 的修改会导致 b c d 的修改，因为他们指向同一个地址
 a[0] = 10
 print(b)  # b[0] 也修改为 10
-# 可以利用切片修改
+# 41 可以利用切片修改
 a[1:3] = [22, 33]
 print(d)
 
-# 深拷贝
+# 42 深拷贝
 a = np.arange(4)
 b = a.copy()  # 深拷贝，a,b指向不同地址
 
@@ -786,7 +870,7 @@ print(a)  # [0 1 2 3]
 
 ```
 
-# 补充内容（待整理）
+# 43 补充内容（待整理）
 
 np.pad()函数用于往多维数组添加 padding，使得多层卷积层不会减少图像的宽高
 
@@ -800,7 +884,7 @@ np.pad(x, ((0,0), (1,1), (1,1)), "constant", constant_values = 0)
 - 参数 3：估计是设置填充类型，"constant"表示用常数填充
 - constant_values：表示用 0 填充
 
-# 参考链接
+# 44 参考链接
 
 - [《Python 数据分析基础教程（第 2 版）》](https://book.douban.com/subject/25798462/)
 - [【莫烦 Python】Numpy & Pandas (数据处理教程)](https://www.bilibili.com/video/BV1Ex411L7oT)
