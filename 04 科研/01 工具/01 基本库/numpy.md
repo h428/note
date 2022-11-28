@@ -366,7 +366,7 @@ d, e 结果都为：
 
 ### 4.1.2 聚合函数
 
-许多聚合操作，例如计算数组中所有元素的总和，都是作为 ndarray 类的方法实现的，例如 `np.sum()`, `np.min()`, `np.max()` 等。默认情况下，这些方法对数组的所有元素进行聚合并返回一个标量，但可以通过指定 axis 参数，来指定聚合操作的应用轴方向，比如传入 `axios=0` 表示按列聚合，示例代码如下：
+许多聚合操作，例如计算数组中所有元素的总和，都是作为 ndarray 类的方法实现的，例如 `np.sum()`, `np.min()`, `np.max()` 等。默认情况下，这些方法对数组的所有元素进行聚合并返回一个标量，但可以通过指定 axis 参数，来指定聚合操作的应用轴方向，比如传入 `axis=0` 表示按列聚合，示例代码如下：
 
 ```py
 a = np.random.random((2,3))
@@ -410,8 +410,8 @@ all, any, apply_along_axis, argmax, argmin, argsort, average, bincount, ceil, cl
 - `np.exp(a)`：指数函数
 - `np.sqrt(a)`：求平方根
 - `np.add(a, b)`：加法运算，等价于 ndarray 的 `a + b`
-- `np.all(arr, axios)`：所有元素且运算，指定维度则对指定维度做且运算
-- `np.any(arr, axios)`：所有元素或运算，指定维度则对指定维度做或运算
+- `np.all(arr, axis)`：所有元素且运算，指定维度则对指定维度做且运算
+- `np.any(arr, axis)`：所有元素或运算，指定维度则对指定维度做或运算
 
 ## 4.2 索引、切片和迭代
 
@@ -517,7 +517,7 @@ print (a[:,1:])# 第 2 列及剩下的所有元素
 
 ### 4.2.3 迭代
 
-对多维数组进行迭代（Iterating）是相对于第一个轴完成的，但是，如果想要对数组中的每个元素执行操作，可以使用 flat 属性，该属性是数组的所有元素的迭代器，示例代码如下：
+对多维数组进行迭代（Iterating）是相对于第一个轴完成的，但是，如果想要对数组中的每个元素执行操作，，示例代码如下：
 
 ```py
 for row in b:
@@ -527,48 +527,54 @@ for element in b.flat:
     print(element)
 ```
 
-flat 返回的迭代器为 ndarray 实例的迭代器，对迭代器的修改会更新到 ndarray 实例中，若不想更改原有数据，还可以使用 `np.ndarray.flatten(order='C')` 返回一份数组拷贝，对拷贝所做的修改不影响原数据，对该方法主要有下列注意点：
+如果想要对 ndarray 展开为一个向量后再进行迭代（即单元素迭代），主要有下列方法：
 
-- order：'C' -- 按行，'F' -- 按列，'A' -- 原顺序，'K' -- 元素在内存中的出现顺序
-- 注意展开为一位数组后，仍然是 ndarray，当然，也可以直接用于遍历
-
-## 4.3 形状操纵
-
-### 4.3.1 改变形状
-
-使用 `np.reshape(a, newshape, order='C')` 方法调整数组形状
-
-- a 待调整的数组
-- newshape 新形状，是一个 list 或 tuple
-- order 可选，'C' -- 按行，'F' -- 按列，'A' -- 原顺序，'k' -- 元素在内存中的出现顺序
-- 该方法不改变原数组，而是返回调整后的数组
-
-此外还可以直接使用 `np.ndarray.reshape(shape, order='C')` 调整数组形状，其本质上是 `np.reshape` 的别名，为了方便形状操纵而添加到 ndarray 上，但对应的操作是直接在 ndarray 实例上调整的（是 O(1) 操作）
-
-- 该操作直接在原数组调整，
-- `numpy.ndarray.flat` 将数组展开为迭代器，可以用于遍历：
+- `np.ndarray.flat` 属性：该属性是 ndarray 的所有元素的迭代器视图，对迭代器的修改会更新到 ndarray 实例中
+- `np.ndarray.ravel()` 方法：该方法的返回值 ndarray 所有元素的迭代器视图，对迭代器的修改会更新到 ndarray 实例中
+- `np.ndarray.flatten(order='C')` 方法：该方法返回 ndarray 数据的迭代器拷贝，对拷贝所做的修改不影响原数据，
 
 ```py
 for element in a.flat:
     print (element)
 ```
 
-- `numpy.ravel(a, order='C')` 返回展平的数组元素，返回的是原数组的视图（类似 C++ 中的引用），修改会影响原有数组值：
-  - order：'C' -- 按行，'F' -- 按列，'A' -- 原顺序，'K' -- 元素在内存中的出现顺序
-  - `print(a.ravel())`
-  - `a.ravel()[0] = 100` 会改变 a 中的值，而 flatten 不会
+## 4.3 形状操纵
+
+### 4.3.1 改变形状
+
+#### reshape
+
+使用 `np.reshape(ndarray, newshape, order='C')` 方法调整数组形状
+
+- ndarray：待调整的 ndarray 实例
+- newshape：新形状，是一个 list 或 tuple
+- order 可选，'C' -- 按行，'F' -- 按列，'A' -- 原顺序，'k' -- 元素在内存中的出现顺序
+- 该方法不改变原数组，而是返回调整后的数组，但两个数组互为视图，它们的 base 指向的是同一个地方，对其中一个数组的修改会反映到另一个数组上
+
+此外还可以直接使用 `np.ndarray.reshape(shape, order='C')` 调整数组形状，其本质上是 `np.reshape` 的别名，为了方便形状操纵而添加到 ndarray 上，但对应的操作是直接在 ndarray 实例上调整的（是 O(1) 操作）。
+
+#### resize
+
+使用 `np.resize(ndarray, newshape)` 方法调整数组形状
+
+- ndarray：待调整的 ndarray 实例
+- newshape：新形状，是一个 list 或 tuple
+- 该方法返回的是一个拷贝，对新数组的修改不影响原数组
+
+还可以使用 `np.ndarray.resize(newshape)` 直接调整数组形状，该修改会直接对调用的 ndarray 实例进行修改。
 
 ### 4.3.2 转置
 
-- 使用 ndarray 对象的 .T 方法进行转置，只适用于二维数组，对于非正规向量返回自身
-- 可以使用 `numpy.transpose(a, axes=None)` 进行高维数组转置，对于二维的情况，和 .T 效果一致
+使用 ndarray 对象的 `.T` 属性获取转置视图，只适用于二维数组，对于非正规向量返回自身，由于其返回的是视图，对视图的修改会同步到原 ndarray 中。
+
+也可以使用 `np.transpose(a, axis=None)` 进行高维数组转置，其返回的同样是视图，对于二维的 ndarray 情况，和 `.T` 属性效果一致。
 
 ```py
 x = np.arange(4).reshape((2,2))
 np.transpose(x)
 ```
 
-- 也可以直接使用 ndarray 自带的 tanspose() 方法
+对于 tanspose，也可以直接使用 ndarray 自带的 `tanspose()` 方法，其本质上是 `np.transpose()` 的别名
 
 ```py
 np.arange(4).reshape((2,2))
@@ -577,15 +583,65 @@ x.transpose()
 
 ### 4.3.3 堆叠
 
+数组可以沿不同的轴堆叠在一起，但最常见的形式还是矩阵的堆叠，堆叠涉及的方法主要包括：
+
+- `np.vstack(ndarrays)`：对向量或矩阵沿竖直方向堆叠，相当于 `axis=0`
+- `np.hstack(ndarrays)`：对向量或矩阵沿水平方向堆叠，相当于 `axis=1`
+- `np.concatenate(ndarrays, axis)`：指定堆叠的轴对通用 ndarray 进行堆叠
+- `np.r_[...]`：按行堆叠，即垂直方向堆叠，相当于 `np.vstack`
+- `np.c_[...]`：按列堆叠，即垂直方向堆叠，相当于 `np.hstack`
+
+```py
+a = [[8, 8], [0, 0]]
+b = [[1, 8], [0, 4]]
+
+np.vstack((a, b))
+np.hstack((a, b))
+np.concatenate((a, b), axis=1)
+np.r_[a, b]
+np.c_[a, b]
+```
+
 ### 4.3.4 拆分
 
+拆分和堆叠类似，主要有三个方法：
+
+- `np.hsplit(ndarray, indices_or_sections)`：沿水平方向拆分，一般针对矩阵或向量
+- `np.vsplit(ndarray, indices_or_sections)`：沿垂直方向拆分，一般针对矩阵或向量
+- `np.array_split(ndarray, indices_or_sections, axis)`：沿指定轴方向拆分
+
+注意对于第二个参数 indices_or_sections，其可以是一个整数或者是一个元组，如果是一个整数，则表示需要拆分的份数，NumPy 会自动均分成 indices 列，若不能整除最后一份拆分为不完整的。如果传入的是一个元组（注意单个数字时需要加上结尾的逗号，否则会被解释为数字），则将元素的列元素看做拆分行或拆分列，在指定的行或列进行拆分然后返回结果。
+
 ## 4.4 拷贝和视图
+
+### 视图
+
+不同的数组对象可以共享相同的数据，这种情况称作视图，视图的真正数据指向同一块引用，对其中一块的修改会反映到所有视图上，使用 `ndarray.view` 方法创建一个查看相同数据的视图。可以使用 `a.base is b.base` 判断两个 ndarray 是否引用同一块数据区域，即互为视图。
+
+我们前述的很的常用操作返回的都是视图，包括切片、转置等，部分操作则分别提供了返回视图的方法和返回拷贝的方法。
+
+### 拷贝
+
+copy 方法生成数组及其数据的完整副本。有时，如果在对 ndarray 进行切片后不再需要原始数组，则可以在切片后对切片调用 copy，这样就可以 del 掉原数组。例如下述代码，假设 a 是一个巨大的中间结果，最终结果 b 只包含 a 的一小部分，那么在用切片构造 b 时应该做一个深拷贝：
+
+```py
+a = np.arange(int(1e8))
+b = a[:100].copy()
+del a  # the memory of ``a`` can be released.
+```
 
 # 5 常用运算
 
 # 6 高级特性
 
 ## 6.1 广播
+
+广播允许通用功能以有意义的方式处理不具有完全相同形状的输入。
+
+- 广播的第一个规则是，如果所有输入数组不具有相同数量的维度，则将“1”重复地预先添加到较小数组的形状，直到所有数组具有相同数量的维度。
+- 广播的第二个规则确保沿特定维度的大小为 1 的数组表现为具有沿该维度具有最大形状的数组的大小。假定数组元素的值沿着“广播”数组的那个维度是相同的。
+
+应用广播规则后，所有数组的大小必须匹配。
 
 - 当运算中的 2 个数组的形状不同且满足广播条件时，numpy 将自动触发广播机制，例如
 

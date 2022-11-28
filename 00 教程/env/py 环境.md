@@ -91,9 +91,24 @@ conda list | findstr numpy # 利用管道查找内容
 
 # 4 远程 SSH 开发
 
+## 基础配置
+
 新建一个 Py Charm 工程，在选择 Interpreter 时，选择远程的 py 编译器，并配置好目录映射
 
 或者在一个已有的工程，选择 `Tools/Deployment/Configuration` 配置映射和自动上传，然后在 `File/Settings/Project xxx` 里配置编译器为远程编译器，如果没有远程编译器则需要基于 SSH 新建。
+
+## jupyter 配置
+
+- 首先激活一个环境，例如：`conda activate main`
+- 安装 jupyter：`conda install jupyter notebook`
+- 执行 `jupyter notebook --generate-config` 生成配置文件 `~/.jupyter/jupyter_notebook_config.py`
+- 执行命令 `jupyter notebook password` 生成密码，密码存储在：`jupyter_notebook_config.json`
+- 在 `~/.jupyter/jupyter_notebook_config.py` 中找到下面的行，取消注释并修改配置：
+  - `c.NotebookApp.ip='*'`
+  - `c.NotebookApp.password= u''` (复制刚才生成在 json 文件中的密文)
+  - `c.NotebookApp.open_browser=False`
+  - `c.NotebookApp.port=xxxx` (可自行指定一个可用端口)
+  - `c.NotebookApp.notebook_dir = '~/code/py/jupyter'`：设置工作目录
 
 # 5 具体环境
 
