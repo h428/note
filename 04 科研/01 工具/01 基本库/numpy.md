@@ -338,7 +338,7 @@ e = 10 * np.sin(a) # [9.12945251, -9.88031624,  7.4511316 , -2.62374854]
 e = a < 35 # [True, True, False, False]
 ```
 
-与许多矩阵语言不同，乘积运算符 `*` 在 NumPy 数组中表示按元素进行乘法运算，不表示矩阵乘法，若要进行矩阵乘法要使用 ndarray.dot 方法，在 python> = 3.5 中可以使用 `@` 运算符进行矩阵乘法，示例代码如下：
+与许多矩阵语言不同，乘积运算符 `*` 在 NumPy 数组中表示按元素进行乘法运算，不表示矩阵乘法，若要进行矩阵乘法要使用 ndarray.dot 或 np.dot 方法，在 python> = 3.5 中可以使用 `@` 运算符进行矩阵乘法，示例代码如下：
 
 ```py
 a = np.array([[1, 1],
@@ -352,6 +352,7 @@ c = a * b
 """
 d = a @ b
 e = a.dot(b)
+g = np.dot(a, b)
 """
 d, e 结果都为：
 [[5 4]
@@ -366,7 +367,7 @@ d, e 结果都为：
 
 ### 4.1.2 聚合函数
 
-许多聚合操作，例如计算数组中所有元素的总和，都是作为 ndarray 类的方法实现的，例如 `np.sum()`, `np.min()`, `np.max()` 等。默认情况下，这些方法对数组的所有元素进行聚合并返回一个标量，但可以通过指定 axis 参数，来指定聚合操作的应用轴方向，比如传入 `axis=0` 表示按列聚合，示例代码如下：
+聚合函数可以简单理解为，对于一个 ndarray，将元素沿某个方向或整体进行聚合，得到一个更小的 ndarray 或者向量或者标量。NumPy 提供了许多聚合函数，这些聚合函数一般是挂靠是 numpy 库下，同时往往会在 ndarray 上提供别名，例如 `np.sum()`, `np.min()`, `np.max()`, `np.mean()` 等。默认情况下，这些方法对数组的所有元素进行聚合并返回一个标量，但可以通过指定 axis 参数，来指定聚合操作的应用轴方向，比如传入 `axis=0` 表示按列聚合，示例代码如下：
 
 ```py
 a = np.random.random((2,3))
@@ -414,6 +415,10 @@ all, any, apply_along_axis, argmax, argmin, argsort, average, bincount, ceil, cl
 - `np.any(ndarray, axis)`：所有元素或运算，指定维度则对指定维度做或运算
 - `np.argmax(ndarray, axis)`：根据 axis 方向求最大值的下标，这在深度学习中很常用；注意若不指定 axis 则求整个 ndarray 的最大值，返回的序号为迭代器下标
 - `np.argmin(ndarray, axis)`：根据 axis 方向求最小值的下标，这在深度学习中很常用
+- `np.mean(ndarray)`：平均值
+- `np.median(ndarray)`：中位数
+- `np.diff(ndarray)`：计算每个元素和前一个元素的差值，默认逐行取出行向量，在一行内进行计算
+- `np.cumsum(ndarray)`：逐元素累加
 
 ## 4.2 索引、切片和迭代
 
@@ -588,22 +593,48 @@ x.transpose()
 
 数组可以沿不同的轴堆叠在一起，但最常见的形式还是矩阵的堆叠，堆叠涉及的方法主要包括：
 
-- `np.vstack(ndarrays)`：对向量或矩阵沿竖直方向堆叠，相当于 `axis=0`
+- `np.vstack(ndarrays)`：对向量或矩阵沿垂直方向堆叠，相当于 `axis=0`
 - `np.hstack(ndarrays)`：对向量或矩阵沿水平方向堆叠，相当于 `axis=1`
 - `np.concatenate(ndarrays, axis)`：指定堆叠的轴对通用 ndarray 进行堆叠
-- `np.r_[...]`：按行堆叠，即垂直方向堆叠，相当于 `np.vstack`
-- `np.c_[...]`：按列堆叠，即垂直方向堆叠，相当于 `np.hstack`
+- `np.r_[...]`：沿垂直方向堆叠，相当于 `np.vstack`
+- `np.c_[...]`：沿水平方向堆叠，相当于 `np.hstack`
 
 ```py
-a = [[8, 8], [0, 0]]
-b = [[1, 8], [0, 4]]
+def test_stack(a, b):
+    print("a.shape:", a.shape, ", data: \n", a)
+    print("b.shape:", b.shape, ", data: \n", b)
+    print("vstack : \n", np.vstack((a, b))) # a, b 沿垂直方向堆叠
+    print("hstack : \n", np.hstack((a, b))) # a, b 沿水平方向堆叠
+    print("concatenate(axis=0): \n", np.concatenate((a, b), axis=0)) # 0 沿垂直方向堆叠，1 沿水平方向堆叠
+    if a.ndim != 1 and b.ndim != 1:
+        print("concatenate(axis=1): \n", np.concatenate((a, b), axis=1)) # 0 沿垂直方向堆叠，1 沿水平方向堆叠
+    print("np.r_ : \n", np.r_[a, b]) # 沿垂直方向堆叠
+    print("np.c_ : \n", np.c_[a, b]) # 沿按水平方向堆叠
 
-np.vstack((a, b))
-np.hstack((a, b))
-np.concatenate((a, b), axis=1)
-np.r_[a, b]
-np.c_[a, b]
+
+a = np.arange(0, 4)
+b = np.arange(4, 8)
+test_stack(a, b)
+
+a = np.arange(0, 4).reshape(1, -1)
+b = np.arange(4, 8).reshape(1, -1)
+test_stack(a, b)
+
+a = np.arange(0, 4).reshape(-1, 1)
+b = np.arange(4, 8).reshape(-1, 1)
+test_stack(a, b)
+
+a = np.array([[8, 8], [0, 0]])
+b = np.array([[1, 8], [0, 4]])
+test_stack(a, b)
 ```
+
+对于标准向量，这些堆叠函数的行为是一致的，堆叠方式就按照前面的描述方式进行堆叠，但对于非标准向量（即 shape 为 `(m,)` 这类的向量）的堆叠方式，在行为上有所差别，其中 `np.r_` 和 `np.c_` 的行为较为特殊：
+
+- `np.concatenate(ndarrays, axis)` 对于非标准向量将其看做行向量沿水平方向堆叠，即使设置 `axis=0` 也不会和矩阵一样沿垂直方向堆叠
+- `np.vstack(ndarrays)` 和 `np.hstack(ndarrays)` 将非标准向量看做行向量，然后分别沿垂直、水平方向堆叠
+- `np.r_[...]` 直接将元素堆叠成一个非标准的行向量
+- `np.c_[...]` 将非标准向量看做一个列向量，然后沿水平方向堆叠
 
 ### 4.3.4 拆分
 
@@ -611,9 +642,7 @@ np.c_[a, b]
 
 - `np.hsplit(ndarray, indices_or_sections)`：沿水平方向拆分，一般针对矩阵或向量
 - `np.vsplit(ndarray, indices_or_sections)`：沿垂直方向拆分，一般针对矩阵或向量
-- `np.array_split(ndarray, indices_or_sections, axis)`：沿指定轴方向拆分
-
-注意对于第二个参数 indices_or_sections，其可以是一个整数或者是一个元组，如果是一个整数，则表示需要拆分的份数，NumPy 会自动均分成 indices 列，若不能整除最后一份拆分为不完整的。如果传入的是一个元组（注意单个数字时需要加上结尾的逗号，否则会被解释为数字），则将元素的列元素看做拆分行或拆分列，在指定的行或列进行拆分然后返回结果。
+- `np.array_split(ndarray, indices_or_sections, axis)`：沿指定轴方向拆分，注意对于第二个参数 indices_or_sections，其可以是一个整数或者是一个元组，如果是一个整数，则表示需要拆分的份数，NumPy 会自动均分成 indices 列，不能均分则多出来的优先放置在前面的数组。如果传入的是一个元组（注意单个数字时需要加上结尾的逗号，否则会被解释为数字），则将元素的列元素看做拆分行或拆分列，在指定的行或列进行拆分然后返回结果。
 
 ## 4.4 拷贝和视图
 
@@ -633,7 +662,7 @@ b = a[:100].copy()
 del a  # the memory of ``a`` can be released.
 ```
 
-# 5 常用运算
+# 5 常见运算
 
 # 6 高级特性
 
