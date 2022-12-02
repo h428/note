@@ -89,6 +89,8 @@ Matplotlib 定义了一个 axes 类（轴域类），该类的对象被称为 ax
 
 > 2D 绘图区域（axes）包含两个轴（axis）对象；如果是 3D 绘图区域，则包含三个。
 
+### add_axes
+
 通过调用 `figure.add_axes(rect)` 方法能够将 axes 对象添加到 figure 中，该方法用来生成一个 axes 对象，对象的位置大小由参数 rect 决定，其是由 4 个浮点数组成，形如 `[left, bottom, width, height]` 的 list，描述了 axes 矩形的信息，前两个值表示 axes 的左下角坐标`(x, y)`，后两个值表示 axes 的宽度和高度。例如 `ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])` 即可创建一个 axes 并添加到 figure。注意每个元素的值是 figure 宽度和高度的百分比，例如 `[0.1, 0.1, 0.8, 0.8]` 代表该 axes 从 figure 左下角 10% 的位置开始绘制，axes 的宽高是 figure 的 80%。
 
 ### axes.plot
@@ -176,9 +178,9 @@ plt.show()
 
 ## subplot()
 
-在使用 Matplotlib 绘图时，我们大多数情况下，需要将一张 figure 划分为若干个子区域，之后，我们就可以在这些区域上绘制不用的图形。在本节，我们将学习如何在同一画布上绘制多个子图。
+在使用 Matplotlib 绘图时，我们大多数情况下，需要将一张 figure 划分为若干个子区域，之后，我们就可以在这些区域上绘制不用的图形。在本节，我们将学习如何在同一画布上绘制多个子图。子图在本质上是提前规划好的，对 figure 进行均分的 axes。
 
-matplotlib.pyplot 模块提供了一个 subplot() 函数，它可以均等地划分画布，该函数的参数格式为 `plt.subplot(nrows, ncols, index)`，其中 nrows 与 ncols 表示要划分几行几列的子图，（nrows\*nclos 表示子图数量），index 用来选定具体的某个子图，初始值为 1 表示第一个子图。
+matplotlib.pyplot 模块提供了一个 subplot() 函数，它可以均等地划分画布，该函数的参数格式为 `plt.subplot(nrows, ncols, index, ...)`，其中 nrows 与 ncols 表示要划分几行几列的子图，（nrows\*nclos 表示子图数量），index 用来选定具体的某个子图，初始值为 1 表示第一个子图。
 
 ```py
 # 现在创建一个子图，它表示一个有 2 行 1 列的网格的顶部图。
@@ -191,4 +193,42 @@ plt.plot(range(12))
 plt.show()
 ```
 
-## add_subplot()
+在新建 subplot 时，如果提供的划分 `(nrows, ncols)` 和已有的划分冲突，将会清空整个 figure（包括以绘制的 速比魄力） 并重新划分。如果新建 subplot 提供的划分 `(nrows, ncols)` 和已有的划分一致，但子图编号和已有的子图重叠，那么将会覆盖重叠子图。如果想保留已有的 subplot，则需要使用 add_subplot 创建子图并进行绘制，或者直接使用原始的 add_axes 函数。
+
+## add_subplot
+
+使用 `add_subplot(nrows, ncols, index, ...)` 同样可以创建子图，且当多个子图的划分冲突时允许在 Z 轴方向重叠（类似 CSS 中的 z-index），其中后添加的子图优先级更高，会覆盖前面的内容。
+
+下列代码，可以看成由两个 figure 重叠而成，其中 ax1 的规划为 `(1, 1, 1)` 占满，而 ax2 的规划为 `(2, 2, 1-4)`，两个划分互相冲突，使用 add_subplot 可以共存，后绘制的 4 个子图会重叠在 ax1 之上，但我们人看可以在缝隙看到部分 ax1 的内容；如果我们把 ax1 的代码放到底部，则其会完全覆盖 ax2
+
+```py
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.plot([1,2,3])
+ax2 = fig.add_subplot(221, facecolor='y')
+ax2.plot([1,2,3])
+ax2 = fig.add_subplot(222, facecolor='y')
+ax2.plot([3,2,1])
+ax2 = fig.add_subplot(223, facecolor='y')
+ax2.plot([3,2,1])
+ax2 = fig.add_subplot(224, facecolor='y')
+ax2.plot([1,2,3])
+```
+
+类似地，直接使用 axes 也可以完成重叠式绘制，且其比 add_subplot 更加灵活（但 add_subplot 的平均划分机制使得编写代码更加便捷），只需定义好 rect 参数即可，例如下列示例代码在主图绘制 sin(x) 函数，然后再右上角补充 cos(x) 函数：
+
+```py
+x = np.arange(0, np.pi * 2, 0.05)
+sin = np.sin(x)
+cos = np.cos(x)
+fig = plt.figure()
+
+axes1 = fig.add_axes([0.1, 0.1, 0.8, 0.8])  # 主图为 sin 函数
+axes1.plot(x, sin, 'b')
+axes1.set_title('sine')
+
+axes2 = fig.add_axes([0.55, 0.55, 0.3, 0.3])  # 有伤角区域为 cos 函数
+axes2.plot(x, cos, 'r')
+axes2.set_title("cosine")
+plt.show()
+```
