@@ -190,3 +190,5 @@ plt.subplot(212, facecolor='y')
 plt.plot(range(12))
 plt.show()
 ```
+
+## add_subplot()
