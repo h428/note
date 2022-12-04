@@ -109,11 +109,11 @@ Matplotlib 定义了一个 axes 类（轴域类），该类的对象被称为 ax
 
 > 2D 绘图区域（axes）包含两个轴（axis）对象；如果是 3D 绘图区域，则包含三个。
 
-### 2.2.1 figure.add_axes 和 np.axes
+### 2.2.1 figure.add_axes 和 plt.axes
 
-通过调用 `figure.add_axes(rect)` 方法能够将 axes 对象添加到 figure 中，该方法用来生成一个 axes 对象，对象的位置大小由参数 rect 决定，其是由 4 个浮点数组成，形如 `[left, bottom, width, height]` 的 list，描述了 axes 矩形的信息，前两个值表示 axes 的左下角坐标`(x, y)`，后两个值表示 axes 的宽度和高度。例如 `ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])` 即可创建一个 axes 并添加到 figure。注意每个元素的值是 figure 宽度和高度的百分比，例如 `[0.1, 0.1, 0.8, 0.8]` 代表该 axes 从 figure 左下角 10% 的位置开始绘制，axes 的宽高是 figure 的 80%。
+通过调用 `figure.add_axes(rect)` 方法能够将 axes 对象添加到 figure 中，该方法用来生成一个 axes 对象，对象的位置与大小由参数 rect 决定，其是由 4 个浮点数组成，形如 `[left, bottom, width, height]` 的 list，描述了 axes 绘图区域的矩形信息，前两个值表示 axes 的左下角坐标`(x, y)`，后两个值表示 axes 的宽度和高度。例如 `ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])` 即可创建一个 axes 并添加到 figure。注意每个元素的值是 figure 宽度和高度的百分比，例如 `[0.1, 0.1, 0.8, 0.8]` 代表该 axes 从 figure 左下角 10% 的位置开始绘制，axes 的宽高是 figure 的 80%。
 
-还可以直接使用 `np.axes(rect)` 创建 axes 对象，并添加到上一次访问的 figure 对象，若没有则会先创建一个 figure，其相当于是 `figure.add_axes(rect)` 的快捷方法。
+还可以直接使用 `plt.axes(rect)` 创建 axes 对象，并自动添加到最新新建的 figure 对象，若没有则会先创建一个 figure，其相当于是 `figure.add_axes(rect)` 的快捷方法。
 
 ```py
 ax2 = plt.axes([0.1, 0.05, 0.8, 0.4])
@@ -126,6 +126,8 @@ ax3.figure.show()
 ### 2.2.2 axes.plot 和 plt.plot
 
 `axes.plot(x, y, desc)` 方法是 axes 类的基本方法，它将一个数组的值与另一个数组的值绘制成线或标记，第三个参数 `desc` 表示可选格式的字符串参数，用来指定线型、标记颜色、样式以及大小。使用 plot 绘制的图表特点为：如果数据点比较分散化，会体现为折线图，如果数据点很密集，也可以离散化模拟曲线，例如常见的正弦、余弦等等。
+
+也可以直接调用 `plt.plot(...)` 进行绘制，其本质上还是基于 `axes.plot(...)`，其会在前面代码最新一次创建的 axes 对象上进行绘制，如果前面没有创建过 axes 对象，会创建一个（如果没有 figure 还会级联创建 figure）。
 
 颜色代码如下表：
 
@@ -180,8 +182,6 @@ ax.legend(labels=("x1", "x2"), loc="lower right")  # 按绘制顺序标记曲线
 plt.show()
 ```
 
-> 在直接调用 `np.plot(...)` 时，会在基于前面代码最新一次创建或访问的 axes 对象进行绘制，如果前面没有创建过 axes 对象，会创建一个（可能会级联创建 figure）。
-
 ### 2.2.3 axes.legend
 
 我们如果绘制了多条曲线，有时候会希望为这几条曲线分别添加说明，这时候可以使用 `ax.legend(handles, labels, loc)` 方法按序为 plot 绘制的图形添加说明图例以便于区分不同曲线（添加一个小矩形，描述那条曲线是什么样式的以及对应的含义），它需要三个参数，如下所示：
@@ -208,6 +208,8 @@ plt.show()
 | 上部居中 | upper center |      9       |
 |   中部   |    center    |      10      |
 
+经测试，也可以直接使用 `plt.legend(...)` 添加说明标记，其本质上应该还是调用 `axes.legend(...)`，其会在前面代码最新一次创建的 axes 对象上进行绘制，前面代码理论上已经必然创建过 axes 并绘制图案了，否则调用 legend 也没有什么意义。
+
 ## 2.3 多子图绘制
 
 需要知道的是，matplotlib 使用 figure 抽象整块画布，使用 axes 抽象可绘制区域，之后将 figure 划分为若干个 axes 子区域（允许重叠），并在 axes 上绘制图形。如果只有一张子图，则 figure 只包含一个 axes 对象，如果包含多个子图则一个 figure 包含多个 axes 对象。
@@ -219,14 +221,39 @@ plt.show()
 matplotlib.pyplot 模块提供 `plt.subplot(nrows, ncols, index, ...)` 函数，它可以均等地划分 figure，其中 nrows 与 ncols 表示要划分几行几列的子图，（nrows\*nclos 表示子图数量），index 用来选定具体的某个子图，初始值为 1 表示第一个子图，其返回值就是当前子图对应的 axes 对象。
 
 ```py
+x = np.arange(1, 5, 0.05)  # x 轴坐标
+y1 = x ** 2
+y2 = np.sqrt(x)
+
 ax1 = plt.subplot(211)  # 创建 (2, 1) 划分下的 1 号 axes
-ax1.plot(range(12))  # 在该 axes 上绘制，本质上是 axes.plot(...)
+ax1.plot(x, y1)  # 在该 axes 上绘制
 plt.subplot(212, facecolor='y')  # 创建 (2, 1) 划分下的 2 号 axes，设置背景为黄色
-plt.plot(range(12))  # 在该 axes 上绘制，本质上是 axes.plot(...)
+plt.plot(x, y2)  # 在新建的 axes 上绘制，本质上是 axes.plot(...)
 plt.show()
 ```
 
 在新建 subplot 时，如果提供的划分 `(nrows, ncols)` 和已有的划分冲突，将会清空整个 figure（包括以绘制的 axes） 并重新划分。如果新建 subplot 提供的划分 `(nrows, ncols)` 和已有的划分一致，但子图编号和已有的子图重叠，那么将会覆盖重叠子图。如果想保留已有的 subplot，则需要使用 add_subplot 创建子图并进行绘制，或者直接使用原始的 add_axes 函数。
+
+此外，使用 subplot 创建 axes 时，依赖一个 figure，如果已经创建过 figure 则会使用对应 figure，如果没创建过 figure 会自动创建一个，可使用下列代码测试：
+
+```py
+x = np.arange(0.1, 5, 0.05)  # 准备 log(x) 和 exp(x) 数据
+y1 = np.log(x)
+y2 = np.exp(x)
+
+fi = plt.figure()  # 创建 figure
+ax1 = plt.subplot(121)  # 创建第一个 axes 并绘制 log(x)
+ax1.plot(x, y1)
+
+ax2 = plt.subplot(122)  # 创建第二个 axes 并绘制 exp(x)
+ax2.plot(x, y2)
+
+print(ax1.figure is ax2.figure)  # 验证 fi, ax1.figure, ax2.figure 三者指向同一个地方
+print(ax1.figure is fi)
+print(ax1.figure is fi)
+
+plt.show()
+```
 
 ### 2.3.2 figure.add_subplot
 
@@ -284,4 +311,157 @@ a[1][1].set_title('log')
 fig.show()
 ```
 
-## 2.4 plt.subplot2grid
+### 2.3.4 plt.subplot2grid
+
+plt 提供了 `axes = plt.subplot2grid(shape, location, rowspan, colspan)`，该函数能够在画布的特定位置创建 axes 对象（即绘图区域）并返回。不仅如此，它还可以使用不同数量的行、列来创建跨度不同的绘图区域（类似单元格合并）。与 `subplot()` 和 `subplots()` 函数不同，`subplot2gird()` 函数允许通过单元格合并非等分的形式对画布进行切分，并按照绘图区域的大小来展示最终绘图结果，其入参含义如下表所示：
+
+|       参数       |                           含义                            |
+| :--------------: | :-------------------------------------------------------: |
+|      shape       |           把该参数值规定的网格区域作为绘图区域            |
+|     location     | 在给定的位置绘制图形，初始位置 `(0,0)` 表示第 1 行第 1 列 |
+| rowsapan/colspan |           这两个参数用来设置让子区跨越几行几列            |
+
+示例代码如下：
+
+```py
+x = np.arange(1, 10, 0.05)  # x 轴坐标
+y1 = x ** 2
+y2 = np.sqrt(x)
+y3 = np.exp(x)
+y4 = np.log10(x)
+
+ax1 = plt.subplot2grid((3, 3), (0, 0), colspan=2)  # 从 (0, 0) 开始，占据两列
+ax2 = plt.subplot2grid((3, 3), (0, 2), rowspan=3)  # 从 (0, 2) 开始，占据三行
+ax3 = plt.subplot2grid((3, 3), (1, 0), rowspan=2, colspan=2)  # 从 (1, 0) 开始，占据两行两列
+
+ax1.plot(x, np.exp(x))
+ax1.set_title('exp')
+ax2.plot(x, x * x)
+ax2.set_title('square')
+ax3.plot(x, np.log(x))
+ax3.set_title('log')
+
+plt.tight_layout()
+plt.show()
+```
+
+## 2.4 其他辅助信息设置
+
+### 2.4.1 设置网格
+
+axes 对象提供的 `axes.grid(color='b', ls = '-.', lw = 0.25)` 方法可以开启或者关闭画布中的网格（即是否显示网格）以及网格的主/次刻度。除此之外，`grid(...)` 函数还可以设置网格的颜色、线型以及线宽等属性。示例代码如下：
+
+```py
+x = np.arange(1, 10, 0.05)  # x 轴坐标
+y1 = x ** 2
+y2 = np.sqrt(x)
+y3 = np.exp(x)
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))  # fig画布, axes 子图区域
+axes[0].plot(x, y1, 'g', lw=2)
+axes[0].grid(True)  # 开启网格
+axes[0].set_title('default grid')  # 设置 title
+
+axes[1].plot(x, y2, 'r')  # 设置网格的颜色，线型，线宽
+axes[1].grid(color='b', ls='-.', lw=0.25)
+axes[1].set_title('custom grid')  # 设置 title
+
+axes[2].plot(x, y3)
+axes[2].set_title('no grid')
+fig.tight_layout()
+plt.show()
+```
+
+### 2.4.2 设置坐标轴精度
+
+在一个函数图像中，有时自变量 x 与因变量 y 是指数对应关系，这时需要将坐标轴刻度设置为对数刻度，这样就可以使得指数函数呈现为直线。Matplotlib 通过设置 axes 对象的 xscale 或 yscale 属性来实现对坐标轴的刻度单位精度，例如下列示例代码：
+
+```py
+x = np.arange(1, 10, 0.05)  # x 轴坐标
+y3 = np.exp(x)
+
+fi = plt.figure()
+axes = fi.add_subplot(111)
+axes.plot(x, y3)  # 指数函数会体现为一条直线
+axes.set_yscale("log")  # 纵坐标设置为对数关系
+fi.show()
+```
+
+### 2.4.3 设置轴是否显示
+
+在 plt 中，每个 axes 有 4 条轴，通用的描述是上下左右四条轴，但一般的 x, y 坐标轴是指的底部和左侧两条轴说的，可以使用 axes.spines 对象的 bottom, left, right, top 获取指定轴，这样就可以进一步设置相关属性和样式，例如下述代码：
+
+```py
+x = np.arange(1, 10, 0.05)  # x 轴坐标
+y1 = x ** 2
+y2 = np.sqrt(x)
+
+fi = plt.figure()
+axes = fi.add_subplot(111)
+axes.plot(x, y1)  # 指数函数会体现为一条直线
+axes.spines['bottom'].set_color('blue')  # 设置底部轴为蓝色
+axes.spines['left'].set_color('red')  # 设置左侧轴为红色
+axes.spines['left'].set_linewidth(2)  # 设置左侧轴的宽度为 2
+axes.spines['right'].set_color(None)  # 将侧轴、顶部轴设置为 None，即隐藏
+axes.spines['top'].set_color(None)
+fi.show()
+```
+
+### 2.4.4 设置坐标轴数值范围
+
+Matplotlib 可以根据自变量与因变量的取值范围，自动设置 x 轴与 y 轴的数值大小。当然，您也可以用自定义的方式，通过 `set_xlim(start, stop)` 和 `set_ylim(start, stop)` 对 x、y 轴的数值范围进行设置，例如下述示例代码：
+
+```py
+x = np.arange(1, 10, 0.05)  # x 轴坐标
+y3 = np.exp(x)
+
+fi = plt.figure()
+axes = fi.add_subplot(111)
+axes.plot(x, y3)  # 指数函数会体现为一条直线
+axes.set_ylim(0, 30000)  # 设置 y 轴的数值范围
+fi.show()
+```
+
+### 2.4.5 设置坐标轴刻度和刻度标签
+
+刻度指的是轴上数据点的标记，Matplotlib 能够自动的在 x 、y 轴上绘制出刻度，这一功能的实现得益于 Matplotlib 内置的刻度定位器和格式化器（两个内建类）。在大多数情况下，这两个内建类完全能够满足我们的绘图需求，但是在某些情况下，刻度标签或刻度也需要满足特定的要求，比如将刻度设置为“英文数字形式”或者“大写阿拉伯数字”，此时就需要对它们重新设置。
+
+`xticks()` 和 `yticks()` 函数接受一个列表对象作为参数，列表中的元素表示对应数轴上要显示的刻度，例如下列示例代码：
+
+```py
+x = np.arange(0, np.pi * 2, 0.05)
+y = np.sin(x)
+fi = plt.figure()
+axes = fi.add_subplot(111)
+axes.plot(x, y)  # 指数函数会体现为一条直线
+axes.set_xticks([0, 2, 4, 6])  # 设置 x 轴要展示的刻度
+axes.set_xticklabels(['zero', 'two', 'four', 'six'])  # 设置刻度对应的文本，注意要和上一个数组一一对应
+fi.show()
+```
+
+### 中文乱码解决
+
+临时解决方案，在导包处添加下列代码：
+
+```py
+plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
+plt.rcParams["axes.unicode_minus"] = False  # 正常显示负号
+```
+
+例如下列示例：
+
+```py
+plt.rcParams["font.sans-serif"] = ['sans-serif', 'SimHei']  # 设置字体
+plt.rcParams["axes.unicode_minus"] = False  # 正常显示负号
+
+year = [2017, 2018, 2019, 2020]
+people = [20, 40, 60, 70]
+plt.plot(year, people)  # 生成图表
+plt.xlabel('年份')
+plt.ylabel('人口')
+plt.title('人口增长')
+
+plt.yticks([0, 20, 40, 60, 80])  # 设置纵坐标刻度
+plt.fill_between(year, people, 20, color='green')  # 设置填充选项：参数分别对应横坐标，纵坐标，纵坐标填充起始值，填充颜色
+plt.show()
+```
