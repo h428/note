@@ -465,3 +465,33 @@ plt.yticks([0, 20, 40, 60, 80])  # 设置纵坐标刻度
 plt.fill_between(year, people, 20, color='green')  # 设置填充选项：参数分别对应横坐标，纵坐标，纵坐标填充起始值，填充颜色
 plt.show()
 ```
+
+# 各类图形
+
+## 等高线
+
+等高线图（也称“水平图”）是一种在二维平面上显示 3D 图像的方法。等高线有时也被称为 “Z 切片”，如果您想要查看因变量 Z 与自变量 X、Y 之间的函数图像变化（即 `Z = f(X,Y)`），那么采用等高线图最为直观。
+
+自变量 X 和 Y 需要被限制在矩形网格内，您可以将 x、y 数组作为参数传递给 `numpy.meshgrid(x, y)` 函数来构建一个网格点矩阵。
+
+Matplotlib API 提供了绘制等高线（contour）与填充等高线（contourf）的函数。这两个函数都至少需要三个参数，分别是 X、Y 与 Z。其中 X 是网格点横坐标组成的矩阵，Y 是网格点纵坐标组成的矩阵，Z 则是网格点的值。示例代码如下：
+
+```py
+x = np.linspace(-3.0, 3.0, 100)  # 创建 x, y 数组
+y = np.linspace(-3.0, 3.0, 100)
+xx, yy = np.meshgrid(x, y)  # 将上述数据变成网格数据形式
+z = np.sqrt(xx ** 2 + yy ** 2)  # 使用圆公式定义 z 与 x, y 之间的关系：z = x^2 + y^2
+fig, ax = plt.subplots(1, 1)  # 创建 figure 和 axes
+cp = ax.contourf(x, y, z)  # 填充等高线颜色
+fig.colorbar(cp)  # 给图像添加颜色柱
+ax.contour(x, y, z)  # 绘制等高线
+ax.set_title('Filled Contours Plot')  # 设置 title
+ax.set_xlabel('x (cm)')  # 设置 x 轴描述
+ax.set_ylabel('y (cm)')  # 设置 y 轴描述
+plt.show()
+```
+
+除了必备参数外，绘制等高线还可提供下列参可选数：
+
+- alpha：设置透明度，介于 0（透明）和 1（不透明）之间。
+- cmap：一个 Colormap 示例或者预定义的 colormap 名称，Colormap 是从浮点高度值到 RGB 颜色值的一个映射，例如 `cmap=plt.cm.hot` 为常用的热力图映射方案，其是 plt 定义好的一套热力图等高线颜色方案，可用方案可参考链接 [Choosing Colormaps in Matplotlib](https://matplotlib.org/stable/tutorials/colors/colormaps.html)。

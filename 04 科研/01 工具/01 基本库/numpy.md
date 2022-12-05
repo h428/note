@@ -550,7 +550,7 @@ for element in a.flat:
 
 ### 4.3.1 改变形状
 
-#### reshape
+#### 4.3.1.1 reshape
 
 使用 `np.reshape(ndarray, newshape, order='C')` 方法调整数组形状
 
@@ -561,7 +561,7 @@ for element in a.flat:
 
 此外还可以直接使用 `np.ndarray.reshape(shape, order='C')` 调整数组形状，其本质上是 `np.reshape` 的别名，为了方便形状操纵而添加到 ndarray 上，但对应的操作是直接在 ndarray 实例上调整的（是 O(1) 操作）。
 
-#### resize
+#### 4.3.1.2 resize
 
 使用 `np.resize(ndarray, newshape)` 方法调整数组形状
 
@@ -647,13 +647,13 @@ test_stack(a, b)
 
 ## 4.4 拷贝和视图
 
-### 视图
+### 4.4.1 视图
 
 不同的数组对象可以共享相同的数据，这种情况称作视图，视图的真正数据指向同一块引用，对其中一块的修改会反映到所有视图上，使用 `ndarray.view` 方法创建一个查看相同数据的视图。可以使用 `a.base is b.base` 判断两个 ndarray 是否引用同一块数据区域，即互为视图。
 
 我们前述的很的常用操作返回的都是视图，包括切片、转置等，部分操作则分别提供了返回视图的方法和返回拷贝的方法。
 
-### 拷贝
+### 4.4.2 拷贝
 
 copy 方法生成数组及其数据的完整副本。有时，如果在对 ndarray 进行切片后不再需要原始数组，则可以在切片后对切片调用 copy，这样就可以 del 掉原数组。例如下述代码，假设 a 是一个巨大的中间结果，最终结果 b 只包含 a 的一小部分，那么在用切片构造 b 时应该做一个深拷贝：
 
@@ -663,11 +663,9 @@ b = a[:100].copy()
 del a  # the memory of ``a`` can be released.
 ```
 
-# 5 常见运算
+# 5 高级特性
 
-# 6 高级特性
-
-## 6.1 广播
+## 5.1 广播
 
 广播使得 NumPy 中的两个 shape 不完全一致的 ndarray 可以进行运算，广播规则主要包括：
 
@@ -697,7 +695,7 @@ bb = np.tile(b, (4, 1)) # 广播，bb 相当于 b 复制了 4 行
 print(a + bb)
 ```
 
-## 6.2 迭代数组
+## 5.2 迭代数组
 
 - 利用 `np.nditer` 获取 ndarray 的逐元素迭代器（默认将按第一维迭代，例如二维矩阵按行迭代）
 
@@ -737,7 +735,15 @@ for x,y in np.nditer([a,b]):
     print ("%d:%d"  %  (x,y), end="\n" )
 ```
 
-# 8 补充内容
+# 6 补充内容
+
+## np.meshgrid
+
+`xx, yy = np.meshgrid(x, y)` 用于给定两个向量，基于这两个向量交叉生成生成网格点坐标矩阵，其会返回两个 $n_x * n_y$ 的矩阵，第一个矩阵表示坐标矩阵横坐标，第二个矩阵表示坐标矩阵纵坐标。例如对于入参 `[1, 2]` 和 `[3, 4]` 会返回矩阵 `[1, 2], [1, 2]` 和 `[3, 3], [4, 4]`，表示 `(1, 3), (1, 4), (2, 3), (2, 4)` 四个坐标点。
+
+该函数一般用于绘制等高线或者绘制决策边界时用于生成 x, y 轴的数值点。
+
+## 6.1 卷积时添加 padding 保持形状
 
 `np.pad()` 函数用于往多维数组添加 padding，使得多层卷积层不会减少图像的宽高
 
@@ -751,7 +757,7 @@ np.pad(x, ((0,0), (1,1), (1,1)), "constant", constant_values = 0)
 - 参数 3：估计是设置填充类型，"constant"表示用常数填充
 - constant_values：表示用 0 填充
 
-# 9 参考链接
+# 7 参考链接
 
 - [《Python 数据分析基础教程（第 2 版）》](https://book.douban.com/subject/25798462/)
 - [【莫烦 Python】Numpy & Pandas (数据处理教程)](https://www.bilibili.com/video/BV1Ex411L7oT)
