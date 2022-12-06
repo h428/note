@@ -48,7 +48,7 @@ pylab 将许多常用的 module 集中到统一的 namespace，目的是提供�
 from numpy import *
 from pylab import *
 x = linspace(-3, 3, 30)
-y = x**2
+y = x ** 2
 plot(x, y)
 show()
 ```
@@ -439,7 +439,7 @@ axes.set_xticklabels(['zero', 'two', 'four', 'six'])  # 设置刻度对应的文
 fi.show()
 ```
 
-### 中文乱码解决
+### 2.4.6 中文乱码解决
 
 临时解决方案，在导包处添加下列代码：
 
@@ -466,9 +466,37 @@ plt.fill_between(year, people, 20, color='green')  # 设置填充选项：参数
 plt.show()
 ```
 
-# 各类图形
+# 3 各类图形
 
-## 等高线
+## 3.1 散点图
+
+散点图用于在水平轴和垂直轴上绘制数据点，它表示了因变量随自变量变化的趋势。通俗地讲，它反映的是一个变量受另一个变量的影响程度。散点图将序列显示为一组点，其中每个散点值都由该点在图表中的坐标位置表示。对于不同类别的点，则由图表中不同形状或颜色的标记符表示。同时，您也可以设置标记符的颜色或大小。
+
+使用 `plt.scatter(x, y)` 绘制散点图，x 和 y 为必备入参，分别表示坐标的横纵坐标，此外还有其他可选入参，下表列了一部分，更详细的可以参考官方文档 [matplotlib.pyplot.scatter](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.scatter.html)。
+
+| 入参 |           含义           |
+| :--: | :----------------------: |
+|  c   | 颜色列表，可以有多种形式 |
+| cmap |         colormap         |
+
+下面示例，绘制了学生考试成绩的散点图，其中蓝色代表男孩成绩，红色表示女孩的成绩。
+
+```py
+x = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]  # x 轴
+y_girls = [89, 90, 70, 89, 100, 80, 90, 100, 80, 34]  # girls 散点图的 y 轴
+y_boys = [30, 29, 49, 48, 100, 48, 38, 45, 20, 30]  # boys 散点图的 y 轴
+fig = plt.figure()
+ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])  # 添加绘图区域
+ax.scatter(x, y_girls, color='r', label="girls")
+ax.scatter(x, y_boys, color='b', label="boys")
+ax.set_xlabel('Grades Range')
+ax.set_ylabel('Grades Scored')
+ax.set_title('scatter plot')
+ax.legend()  # 添加说明图例
+fig.show()
+```
+
+## 3.2 等高线
 
 等高线图（也称“水平图”）是一种在二维平面上显示 3D 图像的方法。等高线有时也被称为 “Z 切片”，如果您想要查看因变量 Z 与自变量 X、Y 之间的函数图像变化（即 `Z = f(X,Y)`），那么采用等高线图最为直观。
 
